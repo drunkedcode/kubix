@@ -1,0 +1,134 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../js';
+@source '../views';
+
+/* Modo oscuro por clase: <html class="dark"> */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    --color-navy-50: #f0f4fa;
+    --color-navy-100: #d9e2f1;
+    --color-navy-200: #b3c5e3;
+    --color-navy-300: #8ca8d4;
+    --color-navy-400: #5f80b8;
+    --color-navy-500: #3f5f96;
+    --color-navy-600: #2f4a78;
+    --color-navy-700: #243a60;
+    --color-navy-800: #182a47;
+    --color-navy-900: #111f36;
+    --color-navy-950: #0a1426;
+}
+
+/* ============================================================
+   TOKENS SEMÁNTICOS (claro por defecto, oscuro con .dark)
+   Los componentes usan: bg-page, bg-surface, bg-surface-2,
+   border-line, text-fg, text-muted, bg-brand, text-brand-fg,
+   bg-sidebar, border-sidebar-line, text-sidebar-fg.
+   ============================================================ */
+:root {
+    color-scheme: light;
+
+    --page: #f4f6fb;
+    --surface: #ffffff;
+    --surface-2: #f0f4fa;
+    --line: #d9e2f1;
+    --fg: #0a1426;
+    --muted: #4a5f80;
+
+    --brand: #0d9488;       /* teal-600: contraste correcto sobre blanco */
+    --brand-hover: #0f766e;
+    --brand-soft: rgb(13 148 136 / 0.12);
+    --brand-fg: #ffffff;
+
+    /* Sidebar: oscuro en ambos modos (cámbialo aquí si lo quieres claro) */
+    --sidebar: #111f36;
+    --sidebar-line: #182a47;
+    --sidebar-fg: #cbd5e1;
+
+    /* Mapa */
+    --map-tooltip-bg: #ffffff;
+    --map-tooltip-border: #d9e2f1;
+    --map-tooltip-fg: #0a1426;
+    --map-tiles-filter: none;
+
+    /* Scrollbar */
+    --scroll-track: #f4f6fb;
+    --scroll-thumb: #b3c5e3;
+    --scroll-thumb-hover: #14b8a6;
+}
+
+.dark {
+    color-scheme: dark;
+
+    --page: #0a1426;
+    --surface: #111f36;
+    --surface-2: #0a1426;
+    --line: #182a47;
+    --fg: #ffffff;
+    --muted: #94a3b8;
+
+    --brand: #14b8a6;       /* teal-500 */
+    --brand-hover: #2dd4bf;
+    --brand-soft: rgb(20 184 166 / 0.15);
+    --brand-fg: #0a1426;
+
+    --sidebar: #111f36;
+    --sidebar-line: #182a47;
+    --sidebar-fg: #cbd5e1;
+
+    --map-tooltip-bg: #111f36;
+    --map-tooltip-border: #182a47;
+    --map-tooltip-fg: #ffffff;
+    --map-tiles-filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9);
+
+    --scroll-track: #0a1426;
+    --scroll-thumb: #243a60;
+    --scroll-thumb-hover: #2dd4bf;
+}
+
+/* Expone los tokens como utilidades de Tailwind (leen la variable en runtime) */
+@theme inline {
+    --color-page: var(--page);
+    --color-surface: var(--surface);
+    --color-surface-2: var(--surface-2);
+    --color-line: var(--line);
+    --color-fg: var(--fg);
+    --color-muted: var(--muted);
+    --color-brand: var(--brand);
+    --color-brand-hover: var(--brand-hover);
+    --color-brand-soft: var(--brand-soft);
+    --color-brand-fg: var(--brand-fg);
+    --color-sidebar: var(--sidebar);
+    --color-sidebar-line: var(--sidebar-line);
+    --color-sidebar-fg: var(--sidebar-fg);
+}
+
+/* maps */
+.kubix-pin { background: transparent; border: 0; }
+.leaflet-tooltip.kubix-tooltip {
+    background: var(--map-tooltip-bg);
+    border: 1px solid var(--map-tooltip-border);
+    color: var(--map-tooltip-fg);
+    font-size: 12px;
+    box-shadow: 0 8px 20px rgb(10 20 38 / 0.25);
+}
+.leaflet-tooltip-top.kubix-tooltip::before { border-top-color: var(--map-tooltip-border); }
+.kubix-tiles { filter: var(--map-tiles-filter); }
+
+/* Scrollbar con identidad Kubix */
+@layer base {
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--scroll-track); }
+    ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+    }
+}

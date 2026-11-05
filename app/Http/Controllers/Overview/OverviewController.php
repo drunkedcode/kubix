@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Overview;
 
 use App\Http\Controllers\Controller;
 use App\Models\Territory;
+use App\Services\Domains\Access\AccessService;
 use App\Services\Domains\Overview\OverviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,10 +13,9 @@ use Inertia\Response;
 
 class OverviewController extends Controller
 {
-    private const TABS = ['general', 'evolution'];
-
     public function __construct(
         protected OverviewService $overview,
+        protected AccessService $access,
     ) {}
 
     /** Todos los territorios del usuario (ej: Pedro con 2 barrios). */
@@ -30,8 +30,13 @@ class OverviewController extends Controller
             return redirect($this->overview->landingUrl($territories->first()));
         }
 
+        // Sin un territorio único no hay equipo de permisos que evaluar: la ruta es abierta
+        // y OverviewService ya filtra los datos por membresías. Se muestran las pestañas declaradas.
+        $tabs = $this->access->allTabs('overview', 'index');
+
         return Inertia::render('Overview/Index', [
-            'tab'           => $this->tab($request),
+            'tab'           => in_array($request->query('tab'), $tabs, true) ? $request->query('tab') : $tabs[0],
+            'tabs'          => $tabs,
             'territorySlug' => null,
             ...$this->overview->forTerritories($territories),
         ]);
@@ -49,14 +54,10 @@ class OverviewController extends Controller
         }
 
         return Inertia::render('Overview/Index', [
-            'tab'           => $this->tab($request),
+            'tab'           => $this->access->resolveTab($request->user(), 'overview', 'index', $request->query('tab')),
+            'tabs'          => $this->access->allowedTabs($request->user(), 'overview', 'index'),
             'territorySlug' => $current->slug,
             ...$this->overview->forTerritory($current),
         ]);
-    }
-
-    private function tab(Request $request): string
-    {
-        return in_array($request->query('tab'), self::TABS, true) ? $request->query('tab') : 'general';
     }
 }

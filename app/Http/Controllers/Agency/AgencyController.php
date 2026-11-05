@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Agency;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Agency\UpdateAgencySettingsRequest;
 use App\Models\Territory;
+use App\Services\Domains\Access\AccessService;
 use App\Services\Domains\Agency\AgencyService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,10 +14,9 @@ use Inertia\Response;
 
 class AgencyController extends Controller
 {
-    private const TABS = ['general', 'evolution', 'settings'];
-
     public function __construct(
         protected AgencyService $agencyService,
+        protected AccessService $accessService,
     ) {}
 
     /** Portada del barrio: su agencia. */
@@ -31,13 +31,29 @@ class AgencyController extends Controller
             return redirect()->route('overview.territory', ['territory' => $territory->slug]);
         }
 
-        $tab = in_array($request->query('tab'), self::TABS, true) ? $request->query('tab') : 'general';
+        $tab = $this->accessService->resolveTab($request->user(), 'agency', 'index', $request->query('tab'));
 
         return Inertia::render('Agency/Index', [
             'tab'   => $tab,
             'scope' => ['value' => $territory->slug, 'label' => $territory->name],
-            'canManageSettings' => (bool) $request->user()?->can('manage-agency'),
+            'tabs'  => $this->accessService->allowedTabs($request->user(), 'agency', 'index'),
             ...$this->agencyService->home($territory),
+        ]);
+    }
+
+    /** Submódulo Issues: reclamos del barrio. */
+    public function issues(Request $request): Response
+    {
+        /** @var Territory $territory */
+        $territory = app('currentTerritory');
+
+        abort_unless($territory->type === 'neighborhood', 404);
+
+        return Inertia::render('Agency/Issues/Index', [
+            'tab'   => $this->accessService->resolveTab($request->user(), 'agency', 'issues', $request->query('tab')),
+            'tabs'  => $this->accessService->allowedTabs($request->user(), 'agency', 'issues'),
+            'scope' => ['value' => $territory->slug, 'label' => $territory->name],
+            ...$this->agencyService->issues($territory),
         ]);
     }
 

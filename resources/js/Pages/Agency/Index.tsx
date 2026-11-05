@@ -10,12 +10,12 @@ import Tabs, { type TabItem } from "@/Shared/ui/Tabs";
 type TabKey = "general" | "evolution" | "settings";
 
 interface IndexProps {
-  tab: TabKey;
+  tab: TabKey; // pestaña activa (el backend ya garantiza que está permitida)
+  tabs: TabKey[]; // pestañas que el usuario puede ver (config/access.php)
   scope: ScopeOption;
   general: GeneralData;
   evolution: EvolutionData;
   settings: SettingsData;
-  canManageSettings: boolean;
 }
 
 const ALL_TABS: TabItem<TabKey>[] = [
@@ -31,9 +31,7 @@ const CONTENT: Record<TabKey, (p: IndexProps) => React.ReactNode> = {
 };
 
 export default function Index(props: IndexProps) {
-  // La configuración solo la ve quien puede editarla (manage-agency).
-  const tabs = ALL_TABS.filter((t) => t.key !== "settings" || props.canManageSettings);
-  const activeTab: TabKey = tabs.some((t) => t.key === props.tab) ? props.tab : "general";
+  const visibleTabs = ALL_TABS.filter((t) => props.tabs.includes(t.key));
 
   const changeTab = (tab: TabKey) =>
     router.get(
@@ -47,8 +45,8 @@ export default function Index(props: IndexProps) {
       <Head title="Mi Agencia" />
 
       <div className="flex flex-col gap-2">
-        <Tabs tabs={tabs} active={activeTab} onChange={changeTab} />
-        <div>{CONTENT[activeTab](props)}</div>
+        <Tabs tabs={visibleTabs} active={props.tab} onChange={changeTab} />
+        <div>{CONTENT[props.tab](props)}</div>
       </div>
     </AdminLayout>
   );

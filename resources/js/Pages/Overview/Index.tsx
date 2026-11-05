@@ -9,7 +9,8 @@ import Tabs, { type TabItem } from "@/Shared/ui/Tabs";
 type TabKey = "general" | "evolution";
 
 interface IndexProps {
-  tab: TabKey;
+  tab: TabKey; // pestaña activa (el backend ya garantiza que está permitida)
+  tabs: TabKey[]; // pestañas que el usuario puede ver (config/access.php)
   /** null = todos los territorios del usuario; con valor = un país, estado o ciudad. */
   territorySlug: string | null;
   general: GeneralData;
@@ -21,7 +22,7 @@ interface SharedProps {
   [key: string]: unknown;
 }
 
-const TABS: TabItem<TabKey>[] = [
+const ALL_TABS: TabItem<TabKey>[] = [
   { key: "general", label: "General", icon: LayoutDashboard },
   { key: "evolution", label: "Evolución", icon: TrendingUp },
 ];
@@ -35,9 +36,9 @@ export default function Index(props: IndexProps) {
   const { territorySlug } = props;
   const { props: shared } = usePage<SharedProps>();
 
-  const activeTab: TabKey = CONTENT[props.tab] ? props.tab : "general";
+  const visibleTabs = ALL_TABS.filter((t) => props.tabs.includes(t.key));
 
-  // Con un territorio puntual el título sigue su nivel (Mi País, Mi Estado, Mi Ciudad).
+  // Con un territorio puntual el título sigue su nivel (País, Estado, Ciudad).
   const title = territorySlug && shared.territory ? OVERVIEW_LABEL[shared.territory.type] : "Mis Agencias";
   const subtitle = territorySlug && shared.territory
     ? `Totales de ${shared.territory.name}`
@@ -55,8 +56,8 @@ export default function Index(props: IndexProps) {
       <Head title={title} />
 
       <div className="flex flex-col gap-1">
-        <Tabs tabs={TABS} active={activeTab} onChange={changeTab} />
-        <div>{CONTENT[activeTab](props)}</div>
+        <Tabs tabs={visibleTabs} active={props.tab} onChange={changeTab} />
+        <div>{CONTENT[props.tab](props)}</div>
       </div>
     </AdminLayout>
   );

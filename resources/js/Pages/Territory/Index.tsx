@@ -1,4 +1,4 @@
-import { Head, router } from "@inertiajs/react";
+import { Head, Link, router } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/AdminLayout";
 
 interface TerritoryItem {
@@ -29,6 +29,15 @@ export default function Index({ currentLevel, territories }: Props) {
       <Head title="Territorios" />
 
       <div className="space-y-6">
+        <div className="flex justify-end">
+          <Link
+            href={route("territories.create")}
+            className="rounded-lg bg-teal-500 px-4 py-2 text-sm font-semibold text-navy-950 transition hover:bg-teal-400"
+          >
+            Nuevo territorio
+          </Link>
+        </div>
+
         {/* Grilla de Tarjetas — datos reales de nuestra DB, sin mock.
             Para bajar por el árbol se usa el selector del header. */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -1,21 +1,23 @@
-import { useEffect, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import Sidebar, { type SidebarProps } from './partials/Sidebar';
 import Header, { type ScopeCascade } from './partials/Header';
 import { getNavItems, type TerritoryType } from './partials/sidebarItems';
+import type { NavItem } from './partials/SidebarNavItem';
 import { useUiStore } from './store/useUiStore';
 
 interface PageProps {
     auth: {
         user: { id: number; name: string; email: string; avatar_url?: string | null } | null;
         roles: string[];
-        permissions: string[];
     };
     territory?: {
         slug: string;
         name: string;
         type: TerritoryType;
     } | null;
+    // Módulos del sidebar que el backend permite ver en la casa actual (config/access.php).
+    nav?: string[];
     // Cascada del header (compartida). Se llama "cascade" para no chocar con
     // props de página como "scope".
     cascade?: ScopeCascade | null;
@@ -41,81 +43,52 @@ export default function AdminLayout({
     const toggleSidebar = useUiStore((s) => s.toggleSidebar);
 
     const { props, url } = usePage<PageProps>();
-    const permissions = props.auth?.permissions ?? [];
-    const territorySlug = props.territory?.slug ?? null;
-    const territoryType = props.territory?.type ?? null;
 
-    // Diagnóstico: qué recibe el layout en cada navegación
-    useEffect(() => {
-        console.log('[scope] props', {
-            url,
-            territory: props.territory,
-            cascade: props.cascade,
-            roles: props.auth?.roles,
-        });
-    }, [url, props.territory, props.cascade, props.auth?.roles]);
-
-    // Ítems del sidebar según el nivel del territorio actual
-    const rawNavItems = getNavItems({
-        territory: territorySlug,
-        type: territoryType,
-        permissions,
-    });
-
-    // Marca como activo el ítem cuyo href coincide con la URL actual
-    const navItems = rawNavItems.map((item) => {
-        if (item.children) {
-            const childrenWithActive = item.children.map((child) => ({
-                ...child,
-                active: child.href !== '#' && (url === child.href || url.startsWith(child.href)),
-            }));
-            const hasActiveChild = childrenWithActive.some((c) => c.active);
-
-            return {
-                ...item,
-                active: hasActiveChild,
-                children: childrenWithActive,
-            };
-        }
-
-        return {
-            ...item,
-            active: item.href !== '#' && (url === item.href || url.startsWith(item.href || '')),
-        };
-    });
-
-    // Entra al territorio elegido. Siempre aterriza en su dashboard:
-    // cada nivel del árbol tiene su propio index y su propio sidebar.
-    const goToTerritory = (slug: string) => {
-        const target = route('agencies.index', { territory: slug });
-        console.log('[scope] navega', { slug, target });
-        router.get(target);
+    // route() devuelve una URL absoluta y "url" de Inertia solo la ruta: se compara por ruta.
+    const isActive = (href?: string) => {
+        if (!href) return false;
+        const path = new URL(href, window.location.origin).pathname;
+        return url === path || url.startsWith(`${path}/`) || url.startsWith(`${path}?`);
     };
 
-    // Cascada: elegir un nodo entra a ese territorio;
-    // "Todos" sube un nivel, y en el primer nivel va a la vista global (super admin) o al overview.
+    const withActive = (item: NavItem): NavItem => ({
+        ...item,
+        active: isActive(item.href),
+        subItems: item.subItems?.map(withActive),
+    });
+
+    const navItems = getNavItems(props.nav ?? [], {
+        territory: props.territory?.slug ?? null,
+        type: props.territory?.type ?? null,
+    }).map(withActive);
+
+    // Entra al territorio elegido: el barrio cae en su Agency; el resto, en su Overview.
+    const goToTerritory = (slug: string, type?: TerritoryType) => {
+        router.get(
+            type === 'neighborhood'
+                ? route('agencies.index', { territory: slug })
+                : route('overview.territory', { territory: slug }),
+        );
+    };
+
+    // Cascada: elegir un nodo entra a ese territorio; "Todos" sube un nivel, y en el
+    // primer nivel va a la vista global (super admin) o al overview.
     const changeCascade = (levelIndex: number, value: string) => {
-        console.log('[scope] cambio', {
-            levelIndex,
-            level: props.cascade?.levels?.[levelIndex]?.type,
-            value: value || '(todos)',
-        });
+        const levels = props.cascade?.levels ?? [];
 
         if (value !== '') {
-            goToTerritory(value);
+            goToTerritory(value, levels[levelIndex]?.type as TerritoryType | undefined);
             return;
         }
 
-        const parent = props.cascade?.levels?.[levelIndex - 1]?.selected;
+        const parent = levels[levelIndex - 1];
 
-        if (parent) {
-            goToTerritory(parent);
+        if (parent?.selected) {
+            goToTerritory(parent.selected, parent.type as TerritoryType);
             return;
         }
 
-        const target = route(props.cascade?.all === 'platform' ? 'territories.index' : 'overview');
-        console.log('[scope] navega', { target });
-        router.get(target);
+        router.get(route(props.cascade?.all === 'platform' ? 'territories.index' : 'overview'));
     };
 
     return (

@@ -75,6 +75,13 @@ Route::middleware('auth')->group(function () {
                     ->name('settings.update');
             });
 
+            // ISSUES: reclamos del barrio (submódulo de Agencia)
+            Route::prefix('issues')->name('issues.')->group(function () {
+                Route::get('/', [AgencyController::class, 'issues'])
+                    ->middleware('can:view-issues')
+                    ->name('index');
+            });
+
             Route::prefix('businesses')->name('businesses.')->group(function () {
                 Route::get('/', [BusinessController::class, 'index'])
                     ->middleware('can:view-business-list')

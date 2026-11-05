@@ -2,6 +2,7 @@
 
 namespace App\Services\Domains\Access;
 
+use App\Models\Territory;
 use App\Models\User;
 use InvalidArgumentException;
 
@@ -87,5 +88,46 @@ class AccessService
         abort_if(empty($allowed), 403);
 
         return in_array($requested, $allowed, true) ? $requested : $allowed[0];
+    }
+
+    /** Casa en la que está parado el usuario: platform | overview | agency. */
+    public function contextFor(?Territory $territory, ?string $routeName): string
+    {
+        if (! $territory) {
+            return str_starts_with((string) $routeName, 'territories.') ? 'platform' : 'overview';
+        }
+
+        return $territory->type === 'neighborhood' ? 'agency' : 'overview';
+    }
+
+    /**
+     * Módulos que son puerta de la casa actual y en los que el usuario puede ver
+     * al menos una pestaña. Es lo que dibuja el sidebar.
+     */
+    public function navigation(User $user, ?Territory $territory, ?string $routeName): array
+    {
+        $context = $this->contextFor($territory, $routeName);
+
+        // Sin territorio no hay equipo de permisos que evaluar: solo la puerta del overview
+        // (su ruta no pide permiso; OverviewService ya filtra por membresías).
+        if (! $territory && $context === 'overview') {
+            return ['overview'];
+        }
+
+        // Una clave por página visible: 'modulo' (la página index) o 'modulo.pagina' (submódulo).
+        return collect(config('access.modules', []))
+            ->flatMap(fn ($pages, $module) => collect($pages)
+                ->filter(fn ($page) => in_array($context, $page['contexts'] ?? [], true)
+                    && collect($page['tabs'] ?? [])->contains(fn (string $permission) => $user->can($permission)))
+                ->keys()
+                ->map(fn ($name) => $name === 'index' ? $module : "{$module}.{$name}"))
+            ->values()
+            ->all();
+    }
+
+    /** Todas las pestañas declaradas de una página, sin evaluar permisos (vistas sin un territorio único). */
+    public function allTabs(string $module, string $page): array
+    {
+        return array_keys(config("access.modules.{$module}.{$page}.tabs", []));
     }
 }

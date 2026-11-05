@@ -1,104 +1,88 @@
-import { useState, type ComponentType } from 'react';
+import { useEffect, useState, type ComponentType } from 'react';
 import { Link } from '@inertiajs/react';
 import { ChevronDown } from 'lucide-react';
 
 const cn = (...classes: (string | undefined | false | null)[]) =>
     classes.filter(Boolean).join(' ');
 
-export interface NavChild {
-    label: string;
-    href: string;
-    active?: boolean;
-}
-
 export interface NavItem {
     label: string;
-    href?: string;
+    href: string;
     icon: ComponentType<{ className?: string }>;
     active?: boolean;
-    children?: NavChild[];
+    subItems?: NavItem[];
 }
 
 interface SidebarNavItemProps extends NavItem {
     collapsed?: boolean;
+    depth?: number;
 }
 
 export default function SidebarNavItem({
-    href = '#',
+    href,
     icon: Icon,
     label,
     active = false,
-    children,
+    subItems = [],
     collapsed = false,
+    depth = 0,
 }: SidebarNavItemProps) {
-    const hasActiveChild = children?.some((child) => child.active) ?? false;
-    const [isOpen, setIsOpen] = useState(hasActiveChild);
+    const hasChildren = subItems.length > 0;
+    const childActive = subItems.some((sub) => sub.active);
+    const isChild = depth > 0;
 
-    if (children) {
-        return (
-            <div>
-                <button
-                    type="button"
-                    onClick={() => setIsOpen((v) => !v)}
-                    title={collapsed ? label : undefined}
-                    className={cn(
-                        'flex w-full cursor-pointer items-center rounded-lg py-2.5 text-sm font-medium transition-colors',
-                        collapsed ? 'justify-center' : 'justify-between gap-3 px-3',
-                        hasActiveChild
-                            ? 'text-teal-300'
-                            : 'text-slate-400 hover:bg-teal-500/5 hover:text-white',
-                    )}
-                >
-                    <div className={cn('flex items-center', !collapsed && 'gap-3')}>
-                        <Icon className="h-5 w-5 shrink-0" />
-                        {!collapsed && <span>{label}</span>}
-                    </div>
-                    {!collapsed && (
-                        <ChevronDown
-                            className={cn(
-                                'h-4 w-4 shrink-0 transition-transform duration-200',
-                                isOpen && 'rotate-180',
-                            )}
-                        />
-                    )}
-                </button>
+    // Abierto por defecto si estás en el módulo o en alguno de sus hijos.
+    const [open, setOpen] = useState(active || childActive);
+    useEffect(() => {
+        if (active || childActive) setOpen(true);
+    }, [active, childActive]);
 
-                {isOpen && !collapsed && (
-                    <div className="mt-1 space-y-1 pl-9 pr-2">
-                        {children.map((child) => (
-                            <Link
-                                key={child.href + child.label}
-                                href={child.href}
-                                className={cn(
-                                    'block rounded-md px-3 py-2 text-xs font-medium transition-colors',
-                                    child.active
-                                        ? 'border border-teal-500/20 bg-teal-500/15 text-teal-300'
-                                        : 'text-slate-500 hover:bg-teal-500/5 hover:text-slate-200',
-                                )}
-                            >
-                                {child.label}
-                            </Link>
-                        ))}
-                    </div>
-                )}
-            </div>
-        );
-    }
+    // Con el sidebar contraído solo se ven los módulos padres.
+    const showChildren = hasChildren && !collapsed && open;
 
     return (
-        <Link
-            href={href}
-            title={collapsed ? label : undefined}
-            className={cn(
-                'flex items-center rounded-lg py-2.5 text-sm font-medium transition-colors',
-                collapsed ? 'justify-center' : 'gap-3 px-3',
-                active
-                    ? 'border border-teal-500/20 bg-teal-500/15 text-teal-300'
-                    : 'text-slate-400 hover:bg-teal-500/5 hover:text-white',
+        <div>
+            <div className="flex items-center gap-1">
+                <Link
+                    href={href}
+                    title={collapsed ? label : undefined}
+                    className={cn(
+                        'flex flex-1 items-center rounded-lg font-medium transition-colors',
+                        isChild ? 'py-2 text-[13px]' : 'py-2.5 text-sm',
+                        collapsed ? 'justify-center' : 'gap-3 px-3',
+                        active
+                            ? 'border border-teal-500/20 bg-teal-500/15 text-teal-300'
+                            : childActive
+                              ? 'text-white'
+                              : 'text-slate-400 hover:bg-teal-500/5 hover:text-white',
+                    )}
+                >
+                    <Icon className={cn('shrink-0', isChild ? 'h-4 w-4' : 'h-5 w-5')} />
+                    {!collapsed && <span>{label}</span>}
+                </Link>
+
+                {hasChildren && !collapsed && (
+                    <button
+                        type="button"
+                        onClick={() => setOpen((value) => !value)}
+                        aria-label={open ? `Cerrar ${label}` : `Abrir ${label}`}
+                        aria-expanded={open}
+                        className="cursor-pointer rounded-lg p-2 text-slate-400 transition-colors hover:bg-teal-500/5 hover:text-white"
+                    >
+                        <ChevronDown
+                            className={cn('h-4 w-4 transition-transform', open ? 'rotate-180' : '-rotate-90')}
+                        />
+                    </button>
+                )}
+            </div>
+
+            {showChildren && (
+                <div className={cn('mt-1 space-y-1', !collapsed && 'ml-5 border-l border-slate-700/50 pl-2')}>
+                    {subItems.map((sub) => (
+                        <SidebarNavItem key={sub.label} {...sub} depth={depth + 1} collapsed={collapsed} />
+                    ))}
+                </div>
             )}
-        >
-            <Icon className="h-5 w-5 shrink-0" />
-            {!collapsed && <span>{label}</span>}
-        </Link>
+        </div>
     );
 }

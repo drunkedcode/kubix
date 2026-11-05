@@ -38,10 +38,6 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user'  => fn() => $user?->only('id', 'name', 'email'),
                 'roles' => fn() => $isSuper ? ['super_admin'] : ($user?->getRoleNames() ?? []),
-                // El super admin ve todo el catálogo; el resto, lo de su team actual.
-                'permissions' => fn() => $isSuper
-                    ? app(AccessService::class)->catalog()
-                    : ($user?->getAllPermissions()->pluck('name') ?? []),
             ],
 
             // Territorio actual. "type" (country|state|city|neighborhood) define
@@ -54,13 +50,6 @@ class HandleInertiaRequests extends Middleware
                 ]
                 : null,
 
-            // Selector plano (gerentes).
-            'territories' => fn() => $isSuper
-                ? []
-                : ($user?->territories()
-                    ->get(['territories.id', 'territories.name', 'territories.slug'])
-                    ->map(fn($t) => ['value' => $t->slug, 'label' => $t->name])
-                    ->values() ?? []),
 
             // Cascada País → Estado → Ciudad → Barrio del header, según el nivel del usuario.
             // Se llama "cascade" para no chocar con props de página como "scope".
@@ -71,6 +60,15 @@ class HandleInertiaRequests extends Middleware
                     app()->bound('currentTerritory') ? app('currentTerritory') : null,
                 )
                 : null,
+
+            // Módulos del sidebar: los de la casa actual en los que el usuario puede ver algo.
+            'nav' => fn() => $user
+                ? app(AccessService::class)->navigation(
+                    $user,
+                    app()->bound('currentTerritory') ? app('currentTerritory') : null,
+                    $request->route()?->getName(),
+                )
+                : [],
 
             'flash' => [
                 'success' => fn() => $request->session()->get('success'),

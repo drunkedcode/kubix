@@ -32,7 +32,10 @@ return [
     | MODULES: lo que se ve
     |--------------------------------------------------------------------------
     |
-    | Una página con 'contexts' es la PUERTA del módulo en el sidebar de esa casa:
+    | La página 'index' ES el módulo en el sidebar (su clic y sus pestañas).
+    | Cualquier otra página con 'contexts' es un SUBMÓDULO: hijo del módulo, con
+    | sus propias pestañas (los nombres de pestaña pueden repetirse entre páginas).
+    | El orden de declaración es el orden del sidebar. 'contexts' dice en qué casa aparece:
     |
     |   overview -> totalizador de varios territorios (país, estado, ciudad o "mis barrios").
     |   agency   -> un barrio.
@@ -40,7 +43,7 @@ return [
     |
     | Una página sin 'contexts' (ej. el detalle de un negocio) es un detalle:
     | no aparece en el sidebar. Un módulo se muestra si el usuario puede ver al
-    | menos una pestaña de su puerta.
+    | menos una pestaña de alguna de sus páginas.
     |
     */
     'modules' => [
@@ -64,6 +67,16 @@ return [
                     'general'   => 'view-dashboard',
                     'evolution' => 'view-evolution-tab',
                     'settings'  => 'manage-agency', // también protege la ruta agencies.settings.update
+                ],
+            ],
+
+            // Submódulo: reclamos y problemas reportados desde VI en el barrio.
+            'issues' => [
+                'contexts' => ['agency'],
+                'tabs' => [
+                    'general'  => 'view-issues',
+                    'open'     => 'view-issues',
+                    'resolved' => 'view-issues',
                 ],
             ],
         ],
@@ -119,6 +132,9 @@ return [
 
         // Gestionar el tráfico pago y los ads del barrio.
         'advertising' => ['manage-advertising'],
+
+        // Responder, asignar y cerrar reclamos del barrio.
+        'issues'      => ['manage-issues'],
 
         // Agregar y quitar personas del equipo (rutas team.create / team.store / team.destroy).
         'team'        => ['manage-team'],
@@ -184,9 +200,9 @@ return [
         'super_admin'    => '*',
 
         // Gerentes de país, estado y ciudad: supervisan y arman su equipo.
-        'country_admin'  => ['view-dashboard', 'view-evolution-tab', 'view-business-list', 'view-business-profile', 'view-team', 'manage-team'],
-        'state_admin'    => ['view-dashboard', 'view-evolution-tab', 'view-business-list', 'view-business-profile', 'view-team', 'manage-team'],
-        'city_admin'     => ['view-dashboard', 'view-evolution-tab', 'view-business-list', 'view-business-profile', 'view-team', 'manage-team'],
+        'country_admin'  => ['view-dashboard', 'view-evolution-tab', 'view-business-list', 'view-business-profile', 'view-team', 'manage-team', 'view-issues'],
+        'state_admin'    => ['view-dashboard', 'view-evolution-tab', 'view-business-list', 'view-business-profile', 'view-team', 'manage-team', 'view-issues'],
+        'city_admin'     => ['view-dashboard', 'view-evolution-tab', 'view-business-list', 'view-business-profile', 'view-team', 'manage-team', 'view-issues'],
 
         // Gerente de barrio (Pedro): gestiona su agencia, negocios, finanzas, tráfico, ads y su equipo.
         'district_admin' => [
@@ -202,6 +218,8 @@ return [
             'view-business-ads',
             'view-team',
             'manage-team',
+            'view-issues',
+            'manage-issues',
         ],
     ],
 ];

@@ -112,4 +112,35 @@ class AgencyService
             ['label' => 'Otros',        'count' => 4],
         ];
     }
+
+    /** Reclamos del barrio agrupados para el submódulo Issues. */
+    public function issues(Territory $territory): array
+    {
+        $issues = collect($this->mockIssues());
+
+        $open     = $issues->where('status', '!=', 'resolved')->values();
+        $resolved = $issues->where('status', 'resolved')->values();
+
+        return [
+            'summary' => [
+                'open'        => $open->count(),
+                'resolved'    => $resolved->count(),
+                'oldest_days' => (int) $open->max('age_days'),
+            ],
+            'open'     => $open->all(),
+            'resolved' => $resolved->all(),
+        ];
+    }
+
+    /** MOCK: pasa a leer de la tabla de issues cuando VI empiece a reportarlos. */
+    private function mockIssues(): array
+    {
+        return [
+            ['id' => 1, 'title' => 'El mural no carga las fotos nuevas',      'reporter' => 'Ana Souza',    'category' => 'Mural',      'status' => 'new',         'age_days' => 1],
+            ['id' => 2, 'title' => 'Negocio duplicado en el directorio',      'reporter' => 'Carlos Lima',  'category' => 'Directorio', 'status' => 'in_progress', 'age_days' => 4],
+            ['id' => 3, 'title' => 'No llega la notificación de empleos',     'reporter' => 'Marta Reis',   'category' => 'Empleos',    'status' => 'new',         'age_days' => 6],
+            ['id' => 4, 'title' => 'El splash muestra el barrio equivocado',  'reporter' => 'Pedro Alves',  'category' => 'VI',         'status' => 'resolved',    'age_days' => 9],
+            ['id' => 5, 'title' => 'Horario incorrecto en una panadería',     'reporter' => 'Julia Nunes',  'category' => 'Directorio', 'status' => 'resolved',    'age_days' => 12],
+        ];
+    }
 }

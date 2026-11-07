@@ -3,7 +3,7 @@ import { initReactI18next } from 'react-i18next';
 import pt_BR from './locales/pt_BR';
 import es from './locales/es';
 
-const STORAGE_KEY = 'nexo-language';
+const STORAGE_KEY = 'kubix-language';
 
 const resources = {
     pt_BR: { translation: pt_BR },

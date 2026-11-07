@@ -6,6 +6,7 @@ use App\Models\Territory;
 use App\Models\User;
 use App\Services\Domains\Business\BusinessService;
 use App\Services\Domains\Membership\MembershipService;
+use App\Services\Domains\Metrics\MetricsService;
 use App\Services\Domains\Territory\TerritoryService;
 use Illuminate\Support\Collection;
 
@@ -31,6 +32,7 @@ class OverviewService
     public function __construct(
         protected BusinessService $businesses,
         protected MembershipService $memberships,
+        protected MetricsService $metrics,
         protected TerritoryService $territories,
     ) {}
 
@@ -64,10 +66,10 @@ class OverviewService
 
         return [
             'general' => [
-                'stats'    => $this->stats($this->businesses->countForTerritories($ids)),
+                'stats'    => $this->metrics->summary($ids),
                 'markers'  => $this->pins($children),
                 'areas'    => [],
-                'segments' => $this->segments(),
+                'segments' => $this->metrics->segments($ids),
             ],
             'evolution' => [
                 'trend'   => $trend,
@@ -102,7 +104,7 @@ class OverviewService
 
         return [
             'general' => [
-                'stats'    => $this->stats($this->businesses->countForTerritories($ids)),
+                'stats'    => $this->metrics->summary($ids),
                 'markers'  => $this->pins($withoutPolygon),
                 'areas'    => $withPolygon
                     ->map(fn ($e) => [
@@ -112,7 +114,7 @@ class OverviewService
                     ])
                     ->values()
                     ->all(),
-                'segments' => $this->segments(),
+                'segments' => $this->metrics->segments($ids),
             ],
             'evolution' => [
                 'trend'   => $trend,
@@ -158,28 +160,5 @@ class OverviewService
             ->sortByDesc('businessCount')
             ->values()
             ->all();
-    }
-
-    private function stats(int $registered): array
-    {
-        return [
-            ['label' => 'Negocios registrados', 'value' => $registered, 'icon' => 'building', 'tone' => 'teal',  'trend' => 12], // MOCK: trend
-            ['label' => 'Al día',               'value' => 31,  'icon' => 'star',     'tone' => 'teal',  'trend' => 8],  // MOCK
-            ['label' => 'Por vencer',           'value' => 10,  'icon' => 'contrast', 'tone' => 'amber', 'trend' => -3], // MOCK
-            ['label' => 'Vencidos',             'value' => 7,   'icon' => 'flame',    'tone' => 'rose',  'trend' => 5],  // MOCK
-            ['label' => 'Onlines',              'value' => 150, 'icon' => 'flame',    'tone' => 'teal',  'trend' => 80], // MOCK
-        ];
-    }
-
-    // MOCK: pendiente de la columna real de categoría/segmento
-    private function segments(): array
-    {
-        return [
-            ['label' => 'Restaurantes', 'count' => 18],
-            ['label' => 'Salones',      'count' => 12],
-            ['label' => 'Barberías',    'count' => 9],
-            ['label' => 'Salud',        'count' => 5],
-            ['label' => 'Otros',        'count' => 4],
-        ];
     }
 }

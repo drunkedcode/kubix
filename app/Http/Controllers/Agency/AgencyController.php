@@ -70,7 +70,7 @@ class AgencyController extends Controller
         ]);
     }
 
-    /** Guarda la configuración propia del barrio. El territorio sale de la URL, nunca del formulario. */
+    /** Guarda la configuración económica del barrio. El territorio sale de la URL, nunca del formulario. */
     public function updateSettings(UpdateAgencySettingsRequest $request): RedirectResponse
     {
         /** @var Territory $territory */
@@ -78,12 +78,7 @@ class AgencyController extends Controller
 
         abort_unless($territory->type === 'neighborhood', 404);
 
-        $this->agencyService->updateSettings(
-            $territory,
-            $request->validated(),
-            ['logo' => $request->file('logo'), 'cover' => $request->file('cover')],
-            $request->user()?->id,
-        );
+        $this->agencyService->updateSettings($territory, $request->validated());
 
         return back()->with('success', 'Configuración guardada.');
     }

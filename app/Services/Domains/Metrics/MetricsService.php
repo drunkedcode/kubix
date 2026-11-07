@@ -45,4 +45,5 @@ class MetricsService
             ['label' => 'Otros',        'count' => 4],
         ];
     }
+    
 }

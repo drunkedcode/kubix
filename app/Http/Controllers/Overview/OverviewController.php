@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Overview;
 use App\Http\Controllers\Controller;
 use App\Models\Territory;
 use App\Services\Domains\Access\AccessService;
+use App\Services\Domains\Overview\OverviewIndexService;
 use App\Services\Domains\Overview\OverviewService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,10 +16,11 @@ class OverviewController extends Controller
 {
     public function __construct(
         protected OverviewService $overview,
+        protected OverviewIndexService $overviewIndex,
         protected AccessService $access,
     ) {}
 
-    /** Todos los territorios del usuario (ej: Pedro con 2 barrios). */
+    /** Todos los territorios del usuario (ej: Pedro con 2 barrios). Solo se carga la pestaña activa. */
     public function all(Request $request): Response|RedirectResponse
     {
         $territories = $this->overview->territoriesOf($request->user());
@@ -31,18 +33,23 @@ class OverviewController extends Controller
         }
 
         // Sin un territorio único no hay equipo de permisos que evaluar: la ruta es abierta
-        // y OverviewService ya filtra los datos por membresías. Se muestran las pestañas declaradas.
+        // y los datos ya se filtran por membresías. Se muestran las pestañas declaradas.
         $tabs = $this->access->allTabs('overview', 'index');
+        $tab  = in_array($request->query('tab'), $tabs, true) ? $request->query('tab') : $tabs[0];
 
         return Inertia::render('Overview/Index', [
-            'tab'           => in_array($request->query('tab'), $tabs, true) ? $request->query('tab') : $tabs[0],
+            'tab'           => $tab,
             'tabs'          => $tabs,
             'territorySlug' => null,
-            ...$this->overview->forTerritories($territories),
+            ...match ($tab) {
+                'territories' => $this->overviewIndex->territories($territories),
+                'general'   => $this->overviewIndex->general($territories),
+                'evolution' => $this->overviewIndex->evolution($territories),
+            },
         ]);
     }
 
-    /** Totalizador de un país, estado o ciudad. */
+    /** Totalizador de un país, estado o ciudad. Solo se carga la pestaña activa. */
     public function territory(Request $request, string $territory): Response|RedirectResponse
     {
         /** @var Territory $current */
@@ -53,11 +60,17 @@ class OverviewController extends Controller
             return redirect($this->overview->landingUrl($current));
         }
 
+        $tab = $this->access->resolveTab($request->user(), 'overview', 'index', $request->query('tab'));
+
         return Inertia::render('Overview/Index', [
-            'tab'           => $this->access->resolveTab($request->user(), 'overview', 'index', $request->query('tab')),
+            'tab'           => $tab,
             'tabs'          => $this->access->allowedTabs($request->user(), 'overview', 'index'),
             'territorySlug' => $current->slug,
-            ...$this->overview->forTerritory($current),
+            ...match ($tab) {
+                'territories' => $this->overviewIndex->territories($current),
+                'general'   => $this->overviewIndex->general($current),
+                'evolution' => $this->overviewIndex->evolution($current),
+            },
         ]);
     }
 }

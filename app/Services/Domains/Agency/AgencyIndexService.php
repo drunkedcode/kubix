@@ -60,4 +60,5 @@ class AgencyIndexService
     {
         return ['settings' => $this->agency->settings($territory)];
     }
+    
 }

@@ -70,6 +70,27 @@ class MembershipService
         ];
     }
 
+    /** Gerente de cada territorio (el del rol que corresponde a su tipo), indexado por id de territorio. */
+    public function managersOf(Collection $territories): array
+    {
+        $roles = $this->catalog()
+            ->filter(fn (array $def) => isset($def['manager_of']))
+            ->keys()
+            ->all();
+
+        $rows = $this->repo->managersOf($territories->pluck('id')->all(), $roles)->groupBy('territory_id');
+
+        return $territories
+            ->mapWithKeys(function (Territory $territory) use ($rows) {
+                $row = $rows->get($territory->id)?->firstWhere('role', $this->managerRoleOf($territory));
+
+                return $row
+                    ? [$territory->id => ['id' => $row->id, 'name' => $row->name, 'role' => $this->roleLabel($row->role)]]
+                    : [];
+            })
+            ->all();
+    }
+
     /** Roles que $actor puede asignar en el territorio, listos para el selector del wizard. */
     public function rolesFor(User $actor, int $territoryId): array
     {

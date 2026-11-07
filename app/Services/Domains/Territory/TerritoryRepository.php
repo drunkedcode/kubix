@@ -2,7 +2,6 @@
 
 namespace App\Services\Domains\Territory;
 
-use App\Models\Media;
 use App\Models\Territory;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -291,17 +290,4 @@ class TerritoryRepository
         return $territory;
     }
 
-    /** Archivo vigente de una colección del territorio (logo, cover) o null. */
-    public function currentMedia(Territory $territory, string $collection): ?Media
-    {
-        return $territory->media()->where('collection', $collection)->first();
-    }
-
-    /** Reemplaza el archivo de una colección: quita el registro anterior y guarda el nuevo. */
-    public function replaceMedia(Territory $territory, string $collection, array $file, ?int $userId = null): Media
-    {
-        $territory->media()->where('collection', $collection)->delete();
-
-        return $territory->attachMedia($file, $collection, $userId);
-    }
 }

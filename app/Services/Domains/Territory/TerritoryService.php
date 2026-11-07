@@ -2,7 +2,6 @@
 
 namespace App\Services\Domains\Territory;
 
-use App\Models\Media;
 use App\Models\Territory;
 use Illuminate\Support\Collection;
 use App\Services\Domains\Territory\Config\TerritoryDataService;
@@ -237,13 +236,19 @@ class TerritoryService
         return $this->repo->updateSettings($territory, $settings);
     }
 
-    public function currentMedia(Territory $territory, string $collection): ?Media
+    /** Nombres de los ancestros, del más cercano al más lejano (ej: ciudad, estado, país). */
+    public function ancestorNames(Territory $territory, int $limit = 2): array
     {
-        return $this->repo->currentMedia($territory, $collection);
-    }
+        $ids = array_filter(
+            explode('/', (string) $territory->path),
+            fn ($id) => $id !== '' && (int) $id !== $territory->id,
+        );
 
-    public function replaceMedia(Territory $territory, string $collection, array $file, ?int $userId = null): Media
-    {
-        return $this->repo->replaceMedia($territory, $collection, $file, $userId);
+        return collect(array_reverse(array_values($ids)))
+            ->take($limit)
+            ->map(fn ($id) => $this->find((int) $id)?->name)
+            ->filter()
+            ->values()
+            ->all();
     }
 }

@@ -53,8 +53,9 @@ return [
             'index' => [
                 'contexts' => ['overview'],
                 'tabs' => [
-                    'general'   => 'view-dashboard',
-                    'evolution' => 'view-evolution-tab',
+                    'territories' => 'view-dashboard',
+                    'general'     => 'view-dashboard',
+                    'evolution'   => 'view-evolution-tab',
                 ],
             ],
         ],

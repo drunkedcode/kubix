@@ -53,4 +53,6 @@ class AgencyIssuesService
             ['id' => 5, 'title' => 'Horario incorrecto en una panadería',     'reporter' => 'Julia Nunes',  'category' => 'Directorio', 'status' => 'resolved',    'age_days' => 12],
         ]);
     }
+
+    
 }

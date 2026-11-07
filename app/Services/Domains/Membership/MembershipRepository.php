@@ -50,6 +50,17 @@ class MembershipRepository
             ->get(['users.id', 'users.name', 'users.email', 'memberships.role']);
     }
 
+    /** Gerentes de varios territorios a la vez (solo los roles dados): [{territory_id, id, name, role}]. */
+    public function managersOf(array $territoryIds, array $roles): Collection
+    {
+        return DB::table('memberships')
+            ->join('users', 'users.id', '=', 'memberships.user_id')
+            ->where('memberships.memberable_type', (new Territory)->getMorphClass())
+            ->whereIn('memberships.memberable_id', $territoryIds)
+            ->whereIn('memberships.role', $roles)
+            ->get(['memberships.memberable_id as territory_id', 'users.id', 'users.name', 'memberships.role']);
+    }
+
     // --- Roles de Spatie (team = territorio) ---
 
     public function assignRole(User $user, int $teamId, string $role): void

@@ -37,11 +37,11 @@ export default function UserMenu({
                 type="button"
                 onClick={() => setOpen((v) => !v)}
                 title={collapsed ? name : undefined}
-                className={`flex w-full items-center rounded-lg py-2 transition-colors hover:bg-teal-500/5 ${
+                className={`flex w-full items-center rounded-lg py-2 transition-colors hover:bg-brand/5 ${
                     collapsed ? 'justify-center px-2' : 'gap-3 px-2'
                 }`}
             >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cyan-400 to-teal-500 text-sm font-bold text-navy-950 shadow-md shadow-teal-500/20">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-brand to-brand-hover text-sm font-bold text-brand-fg shadow-md shadow-brand/20">
                     {initial}
                 </div>
 
@@ -62,13 +62,13 @@ export default function UserMenu({
 
             {open && (
                 <div
-                    className={`absolute bottom-full z-20 mb-2 w-52 rounded-xl border border-navy-800 bg-navy-900 p-1.5 shadow-xl shadow-navy-950/50 ${
+                    className={`absolute bottom-full z-20 mb-2 w-52 rounded-xl border border-sidebar-line bg-sidebar p-1.5 shadow-xl shadow-black/50 ${
                         collapsed ? 'left-full ml-2' : 'left-0'
                     }`}
                 >
                     <a
                         href={profileHref}
-                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-teal-500/10 hover:text-teal-300"
+                        className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-slate-300 transition-colors hover:bg-brand/10 hover:text-brand"
                     >
                         <User className="h-4 w-4" />
                         Mi perfil

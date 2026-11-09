@@ -25,7 +25,7 @@ export default function TerritoryCard({ data }: { data: TerritoryCardData }) {
       {data.type === "neighborhood" ? (
         <img src={BRAND.icon} alt={BRAND.name} className="h-10 w-10 shrink-0 object-contain" />
       ) : (
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-navy-800 text-slate-400">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-surface-2 text-muted">
           <Building2 className="h-5 w-5" />
         </div>
       )}
@@ -45,7 +45,7 @@ export default function TerritoryCard({ data }: { data: TerritoryCardData }) {
     <Card
       href={data.href}
       header={header}
-      footer={<p className="text-right text-xs font-medium text-teal-300">Entrar →</p>}
+      footer={<p className="text-right text-xs font-medium text-brand-text">Entrar →</p>}
     >
       <div className="space-y-4">
         {data.manager ? (

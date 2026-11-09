@@ -42,7 +42,7 @@ export default function StatusFilter({
                 aria-pressed={value === ''}
                 className={`flex h-[42px] cursor-pointer items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors ${
                     value === ''
-                        ? 'border-brand/50 bg-brand-soft text-brand'
+                        ? 'border-brand/50 bg-brand-soft text-brand-text'
                         : 'border-line text-muted hover:bg-surface-2'
                 }`}
             >

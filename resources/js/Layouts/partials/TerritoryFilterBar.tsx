@@ -105,6 +105,7 @@ export default function TerritoryFilterBar({
             key={level}
             className={inline ? 'w-40' : c.width}
             label={inline ? undefined : c.label}
+            tone={inline ? 'bar' : 'default'}
             value={selection[level] ?? ''}
             onChange={(v) => handleSelect(level, v)}
             options={toOptions(lists[level])}

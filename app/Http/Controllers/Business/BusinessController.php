@@ -6,8 +6,10 @@ use App\Enums\BusinessSegment;
 use App\Http\Controllers\Controller;
 use App\Models\Territory;
 use App\Services\Domains\Access\AccessService;
+use App\Services\Domains\Business\BusinessIndexService;
 use App\Services\Domains\Business\BusinessService;
 use App\Services\Domains\Business\BusinessShowService;
+use App\Services\Domains\Payment\PaymentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -18,6 +20,8 @@ class BusinessController extends Controller
     public function __construct(
         protected BusinessService $businessService,
         protected BusinessShowService $showService,
+        protected BusinessIndexService $businessIndex,
+        protected PaymentService $payments,
         protected AccessService $accessService,
     ) {}
 
@@ -26,11 +30,25 @@ class BusinessController extends Controller
         /** @var Territory $territory */
         $territory = app('currentTerritory');
 
-        $businesses = $this->businessService->listForTerritory($territory->id);
+        $tab = $this->accessService->resolveTab($request->user(), 'business', 'index', $request->query('tab'));
+
+        $filters = [
+            'search'   => (string) $request->query('search', ''),
+            'segment'  => (string) $request->query('segment', ''),
+            'statuses' => (array) $request->query('status', []),
+        ];
 
         return Inertia::render('Business/Index', [
-            'businesses'    => $this->businessService->toTableRows($businesses, $territory->name),
+            'tab'           => $tab,
+            'tabs'          => $this->accessService->allowedTabs($request->user(), 'business', 'index'),
             'territorySlug' => $territory->slug,
+            'filters'       => ['search' => $filters['search'], 'segment' => $filters['segment'], 'status' => $filters['statuses']],
+            'kpis'          => $this->businessIndex->kpis($territory),
+            ...match ($tab) {
+                'list'       => $this->businessIndex->list($territory, $filters),
+                'approvals'  => $this->businessIndex->approvals($territory),
+                'categories' => $this->businessIndex->categories($territory),
+            },
         ]);
     }
 
@@ -62,6 +80,21 @@ class BusinessController extends Controller
         $result = $this->businessService->register($data, $request->user()?->id);
 
         return back()->with('success', "Negocio \"{$result['business']->name}\" dado de alta.");
+    }
+
+    /** Aprovações: el equipo registra el pago en efectivo del onboarding y el negocio queda activo. */
+    public function activate(Request $request, string $territory, string $business): RedirectResponse
+    {
+        /** @var Territory $current */
+        $current = app('currentTerritory');
+
+        $negocio = $this->businessService->find((int) $business);
+
+        abort_if(! $negocio || $this->businessService->territoryIdOf($negocio) !== $current->id, 404);
+
+        $this->payments->pay($negocio, 'onboarding', 'cash', $request->user()->id);
+
+        return back();
     }
 
     public function show(Request $request, string $territory, string $business): Response

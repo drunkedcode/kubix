@@ -13,6 +13,7 @@ interface TabsProps<K extends string = string> {
     className?: string;
 }
 
+/** Pestañas en píldora: la activa va en el color de la marca. */
 export default function Tabs<K extends string = string>({
     tabs,
     active,
@@ -22,7 +23,7 @@ export default function Tabs<K extends string = string>({
     return (
         <div
             role="tablist"
-            className={`flex items-center gap-1 overflow-x-auto overflow-y-hidden border-b border-line ${className}`}
+            className={`flex w-fit max-w-full items-center gap-1 overflow-x-auto rounded-full bg-surface-2 p-1.5 ${className}`}
         >
             {tabs.map(({ key, label, icon: Icon }) => {
                 const isActive = active === key;
@@ -33,10 +34,10 @@ export default function Tabs<K extends string = string>({
                         role="tab"
                         aria-selected={isActive}
                         onClick={() => onChange(key)}
-                        className={`-mb-px flex shrink-0 cursor-pointer items-center gap-2 border-b-2 px-4 py-3 text-sm font-semibold transition-colors ${
+                        className={`flex shrink-0 cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors ${
                             isActive
-                                ? 'border-brand text-brand'
-                                : 'border-transparent text-muted hover:text-fg'
+                                ? 'bg-brand text-brand-fg shadow-sm'
+                                : 'text-muted hover:text-fg'
                         }`}
                     >
                         <Icon className="h-4 w-4 shrink-0" />

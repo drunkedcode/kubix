@@ -17,6 +17,7 @@ class UpdateAgencySettingsRequest extends FormRequest
         return [
             'onboarding_price' => ['nullable', 'integer', 'min:0', 'max:99999999'],
             'daily_price'      => ['nullable', 'integer', 'min:0', 'max:99999999'],
+            'promotion_price'  => ['nullable', 'integer', 'min:0', 'max:99999999'],
         ];
     }
 }

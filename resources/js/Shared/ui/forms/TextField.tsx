@@ -54,7 +54,7 @@ export default function TextField({
 
   return (
     <div className={className}>
-      <label htmlFor={inputId} className="block text-sm font-medium text-white">
+      <label htmlFor={inputId} className="block text-sm font-medium text-fg">
         {label} {required && <span className="text-rose-400">*</span>}
       </label>
       <input
@@ -68,10 +68,10 @@ export default function TextField({
         required={required}
         aria-invalid={!!shownError}
         aria-describedby={shownError ? `${inputId}-error` : undefined}
-        className={`mt-1 w-full rounded-lg border bg-navy-950 px-4 py-2.5 text-sm text-white placeholder-slate-500 transition-colors focus:outline-none focus:ring-2 ${
+        className={`mt-1 w-full rounded-lg border bg-surface-2 px-4 py-2.5 text-sm text-fg placeholder:text-muted transition-colors focus:outline-none focus:ring-2 ${
           shownError
             ? "border-rose-500/50 focus:border-rose-500 focus:ring-rose-500/20"
-            : "border-navy-700 focus:border-teal-500/50 focus:ring-teal-500/50"
+            : "border-line focus:border-brand/50 focus:ring-brand/50"
         }`}
       />
       {shownError && (

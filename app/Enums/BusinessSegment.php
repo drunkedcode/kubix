@@ -14,12 +14,12 @@ enum BusinessSegment: string
     public function label(): string
     {
         return match ($this) {
-            self::Food   => 'Comidas',
-            self::Beauty => 'Belleza',
-            self::Legal  => 'Legal',
-            self::Health => 'Salud',
-            self::Retail => 'Comercio',
-            self::Other  => 'Otro',
+            self::Food   => 'Comida',
+            self::Beauty => 'Beleza',
+            self::Legal  => 'Jurídico',
+            self::Health => 'Saúde',
+            self::Retail => 'Comércio',
+            self::Other  => 'Outro',
         };
     }
 

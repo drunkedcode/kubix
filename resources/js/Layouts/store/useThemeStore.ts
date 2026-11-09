@@ -10,9 +10,9 @@ const apply = (mode: ThemeMode) => {
 
 const initial = (): ThemeMode => {
     try {
-        return localStorage.getItem(KEY) === 'light' ? 'light' : 'dark';
+        return localStorage.getItem(KEY) === 'dark' ? 'dark' : 'light';
     } catch {
-        return 'dark';
+        return 'light';
     }
 };
 

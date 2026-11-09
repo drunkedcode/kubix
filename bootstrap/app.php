@@ -19,6 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'territory.resolve' => \App\Http\Middleware\ResolveOrganization::class,
+            'user.territory'    => \App\Http\Middleware\ResolveUserTerritory::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

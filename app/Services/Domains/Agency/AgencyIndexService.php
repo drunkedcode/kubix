@@ -30,12 +30,16 @@ class AgencyIndexService
 
         return [
             'general' => [
-                'stats'    => $this->metrics->summary($ids),
+                'stats'    => $this->metrics->agencyKpis($ids),
                 'markers'  => $this->businesses->toMarkers($this->businesses->listForTerritory($territory->id)),
                 'areas'    => $territory->polygon
                     ? [['id' => $territory->id, 'name' => $territory->name, 'geometry' => $territory->polygon]]
                     : [],
                 'segments' => $this->metrics->segments($ids),
+                'performance' => $this->metrics->performance($ids),
+                'top'      => $this->metrics->topBusinesses($ids),
+                'modules'  => $this->metrics->moduleStatus($ids),
+                'activity' => $this->businesses->activityForTerritories($ids),
             ],
         ];
     }

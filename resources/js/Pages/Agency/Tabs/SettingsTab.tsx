@@ -6,12 +6,14 @@ import TextField from "@/Shared/ui/forms/TextField";
 export interface SettingsData {
   onboarding_price: number | null;
   daily_price: number | null;
+  promotion_price: number | null;
 }
 
 /** En pantalla se escriben en R$; al enviar se convierten a centavos. */
 type FormState = {
   onboarding_price: string;
   daily_price: string;
+  promotion_price: string;
 };
 
 const toReais = (cents: number | null): string =>
@@ -30,6 +32,7 @@ export default function SettingsTab({ data, territory }: { data: SettingsData; t
   const { data: form, setData, post, processing, errors, transform } = useForm<FormState>({
     onboarding_price: toReais(data.onboarding_price),
     daily_price: toReais(data.daily_price),
+    promotion_price: toReais(data.promotion_price),
   });
 
   const submit = (e: FormEvent) => {
@@ -37,19 +40,20 @@ export default function SettingsTab({ data, territory }: { data: SettingsData; t
     transform((d) => ({
       onboarding_price: toCents(d.onboarding_price),
       daily_price: toCents(d.daily_price),
+      promotion_price: toCents(d.promotion_price),
     }));
     post(route("agencies.settings.update", { territory }), { preserveScroll: true });
   };
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-4 pb-6">
-      <div className="rounded-xl border border-navy-800 bg-navy-900 p-4">
-        <p className="text-sm font-semibold text-white">Precios del barrio</p>
-        <p className="mt-1 text-xs text-slate-400">
+      <div className="rounded-xl border border-line bg-surface p-4">
+        <p className="text-sm font-semibold text-fg">Precios del barrio</p>
+        <p className="mt-1 text-xs text-muted">
           Lo que paga cada negocio de este barrio. Los precios por tamaño de negocio llegarán más adelante.
         </p>
 
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div className="mt-4 grid gap-4 sm:grid-cols-3">
           <div>
             <TextField
               label="Onboarding (R$)"
@@ -58,7 +62,7 @@ export default function SettingsTab({ data, territory }: { data: SettingsData; t
               placeholder="0,00"
               error={errors.onboarding_price}
             />
-            <p className="mt-1 text-xs text-slate-500">Se cobra una vez, cuando el negocio entra al barrio.</p>
+            <p className="mt-1 text-xs text-muted">Se cobra una vez, cuando el negocio entra al barrio.</p>
           </div>
           <div>
             <TextField
@@ -68,7 +72,17 @@ export default function SettingsTab({ data, territory }: { data: SettingsData; t
               placeholder="0,00"
               error={errors.daily_price}
             />
-            <p className="mt-1 text-xs text-slate-500">Precio por día del mural.</p>
+            <p className="mt-1 text-xs text-muted">Precio por día del mural.</p>
+          </div>
+          <div>
+            <TextField
+              label="Promoción (R$)"
+              value={form.promotion_price}
+              onChange={(v) => setData("promotion_price", onlyMoney(v))}
+              placeholder="0,00"
+              error={errors.promotion_price}
+            />
+            <p className="mt-1 text-xs text-muted">Se cobra cada vez que un negocio publica una promoción.</p>
           </div>
         </div>
       </div>
@@ -77,7 +91,7 @@ export default function SettingsTab({ data, territory }: { data: SettingsData; t
         <button
           type="submit"
           disabled={processing}
-          className="rounded-lg bg-teal-500 px-5 py-2.5 text-sm font-semibold text-navy-950 transition hover:bg-teal-400 disabled:opacity-50"
+          className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg transition hover:bg-brand-hover disabled:opacity-50"
         >
           {processing ? "Guardando…" : "Guardar cambios"}
         </button>

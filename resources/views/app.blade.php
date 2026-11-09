@@ -8,7 +8,7 @@
     <!-- LOGO EN LA PESTAÑA (Favicon) -->
     <link rel="icon" type="image/png" href="{{ Vite::asset('resources/js/Assets/logo.png') }}">
 
-    <script>try{document.documentElement.classList.toggle('dark',localStorage.getItem('kubix-theme')!=='light')}catch(e){document.documentElement.classList.add('dark')}</script>
+    <script>try{document.documentElement.classList.toggle('dark',localStorage.getItem('kubix-theme')==='dark')}catch(e){}</script>
     @routes
     @viteReactRefresh
     @vite(['resources/css/app.css', 'resources/js/app.tsx'])

@@ -57,8 +57,8 @@ export async function alertConfirm(
     title,
     text,
     showCancelButton: true,
-    confirmButtonText,
-    cancelButtonText,
+    confirmButtonText: confirmText,
+    cancelButtonText: cancelText,
   });
   return result.isConfirmed;
 }
@@ -76,8 +76,8 @@ export async function alertConfirmDanger(
     text,
     showCancelButton: true,
     confirmButtonColor: DANGER_COLOR,
-    confirmButtonText,
-    cancelButtonText,
+    confirmButtonText: confirmText,
+    cancelButtonText: cancelText,
   });
   return result.isConfirmed;
 }

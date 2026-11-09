@@ -21,21 +21,21 @@ export interface CardProps {
 
 export default function Card({ header, children, footer, href, className }: CardProps) {
     const frame = cn(
-        'flex flex-col overflow-hidden rounded-xl border border-navy-800 bg-navy-900',
+        'flex flex-col overflow-hidden rounded-xl border border-line bg-surface',
         className,
     );
 
     const content = (
         <>
-            <div className="border-b border-navy-800 p-4">{header}</div>
+            <div className="border-b border-line p-4">{header}</div>
             {children && <div className="flex-1 p-4">{children}</div>}
-            {footer && <div className="border-t border-navy-800 px-4 py-3">{footer}</div>}
+            {footer && <div className="border-t border-line px-4 py-3">{footer}</div>}
         </>
     );
 
     if (href) {
         return (
-            <Link href={href} className={cn(frame, 'transition-colors hover:border-teal-500/40')}>
+            <Link href={href} className={cn(frame, 'transition-colors hover:border-brand/40')}>
                 {content}
             </Link>
         );

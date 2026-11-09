@@ -45,6 +45,7 @@
     --brand-hover: #0f766e;
     --brand-soft: rgb(13 148 136 / 0.12);
     --brand-fg: #ffffff;
+    --brand-text: var(--brand); /* la marca como texto sobre superficies */
 
     /* Sidebar: oscuro en ambos modos (cámbialo aquí si lo quieres claro) */
     --sidebar: #111f36;
@@ -92,6 +93,61 @@
     --scroll-thumb-hover: #2dd4bf;
 }
 
+/* ============================================================
+   MUÑECAS: cada producto sobrescribe los tokens del tablero.
+   <html data-doll="vi">: la clave sale de config/access.php (dolls).
+   ============================================================ */
+:root[data-doll="vi"] {
+    --page: #f8fafc;
+    --surface: #ffffff;
+    --surface-2: #f1f5f9;
+    --line: #e2e8f0;
+    --fg: #0f172a;
+    --muted: #64748b;
+
+    --brand: #ffc700;
+    --brand-hover: #ff9900;
+    --brand-soft: rgb(255 199 0 / 0.16);
+    --brand-text: #b45309; /* ámbar oscuro: el amarillo puro no se lee sobre blanco */
+    --brand-fg: #0f172a;
+
+    --sidebar: #0f172a;
+    --sidebar-line: #1e293b;
+    --sidebar-fg: #cbd5e1;
+
+    --map-tooltip-border: #e2e8f0;
+
+    --scroll-track: #f8fafc;
+    --scroll-thumb: #cbd5e1;
+    --scroll-thumb-hover: #ffc700;
+}
+
+:root[data-doll="vi"].dark {
+    --page: #020617;
+    --surface: #0f172a;
+    --surface-2: #020617;
+    --line: #1e293b;
+    --fg: #ffffff;
+    --muted: #94a3b8;
+
+    --brand: #ffc700;
+    --brand-hover: #ffd633;
+    --brand-soft: rgb(255 199 0 / 0.15);
+    --brand-text: #ffc700;
+    --brand-fg: #0f172a;
+
+    --sidebar: #0f172a;
+    --sidebar-line: #1e293b;
+    --sidebar-fg: #cbd5e1;
+
+    --map-tooltip-bg: #0f172a;
+    --map-tooltip-border: #1e293b;
+
+    --scroll-track: #020617;
+    --scroll-thumb: #334155;
+    --scroll-thumb-hover: #ffc700;
+}
+
 /* Expone los tokens como utilidades de Tailwind (leen la variable en runtime) */
 @theme inline {
     --color-page: var(--page);
@@ -104,6 +160,7 @@
     --color-brand-hover: var(--brand-hover);
     --color-brand-soft: var(--brand-soft);
     --color-brand-fg: var(--brand-fg);
+    --color-brand-text: var(--brand-text);
     --color-sidebar: var(--sidebar);
     --color-sidebar-line: var(--sidebar-line);
     --color-sidebar-fg: var(--sidebar-fg);

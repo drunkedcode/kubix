@@ -1,6 +1,6 @@
-import { Bell } from 'lucide-react';
+import { Bell, ChevronRight, Home, LogOut } from 'lucide-react';
+import { Link } from '@inertiajs/react';
 import ThemeToggle from './ThemeToggle';
-// Ajustá la ruta al lugar donde tengas TerritoryFilterBar
 import TerritoryFilterBar, {
     type Option,
     type TerritorySelection,
@@ -25,23 +25,35 @@ export interface ScopeCascade {
     levels?: ScopeLevel[];
 }
 
+/**
+ * Header.tsx
+ * Qué es:          barra superior oscura: inicio, migas de pan, selector de territorio,
+ *                  tema, notificaciones y salir.
+ * Qué NO hace:     no muestra el título de la página (lo hace PageHeader).
+ */
 interface HeaderProps {
-    title: string;
-    subtitle?: string;
+    /** Migas de pan; la última es la página actual. */
+    crumbs: string[];
+    homeHref: string;
     notificationCount?: number;
     onNotificationsClick?: () => void;
     scope?: ScopeCascade | null;
     /** levelIndex = posición del nivel dentro de scope.levels; value '' = "Todos". */
     onCascadeChange?: (levelIndex: number, value: string) => void;
+    onLogout?: () => void;
 }
 
+const ICON_BUTTON =
+    'cursor-pointer rounded-xl border border-sidebar-line p-2.5 text-slate-300 transition-colors';
+
 export default function Header({
-    title,
-    subtitle,
+    crumbs,
+    homeHref,
     notificationCount = 0,
     onNotificationsClick,
     scope,
     onCascadeChange,
+    onLogout,
 }: HeaderProps) {
     const levels: ScopeLevel[] = Array.isArray(scope?.levels) ? scope!.levels! : [];
 
@@ -67,11 +79,30 @@ export default function Header({
     const allowAll = !!scope?.all || (levels[0]?.options.length ?? 0) > 1;
 
     return (
-        <header className="flex items-center justify-between border-b border-line bg-page px-5 py-1">
-            <div>
-                <h1 className="text-lg font-bold tracking-wide text-fg">{title}</h1>
-                {subtitle && <p className="mt-0.5 text-sm text-muted">{subtitle}</p>}
-            </div>
+        <header className="flex h-16 shrink-0 items-center justify-between gap-4 border-b border-sidebar-line bg-sidebar px-5">
+            <nav aria-label="Migas de pan" className="flex min-w-0 items-center gap-2 text-sm">
+                <Link
+                    href={homeHref}
+                    aria-label="Inicio"
+                    className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/5 text-brand transition-colors hover:bg-white/10"
+                >
+                    <Home className="h-5 w-5" />
+                </Link>
+                {crumbs.map((crumb, index) => (
+                    <span key={`${crumb}-${index}`} className="flex min-w-0 items-center gap-2">
+                        <ChevronRight className="h-3.5 w-3.5 shrink-0 text-slate-600" />
+                        <span
+                            className={
+                                index === crumbs.length - 1
+                                    ? 'truncate font-semibold text-white'
+                                    : 'truncate text-slate-400'
+                            }
+                        >
+                            {crumb}
+                        </span>
+                    </span>
+                ))}
+            </nav>
 
             <div className="flex items-center gap-3">
                 {levels.length > 0 && (
@@ -93,7 +124,7 @@ export default function Header({
                     type="button"
                     onClick={onNotificationsClick}
                     aria-label="Notificaciones"
-                    className="relative cursor-pointer rounded-xl border border-line p-2.5 text-muted transition-colors hover:bg-surface hover:text-brand"
+                    className={`${ICON_BUTTON} relative hover:bg-brand/10 hover:text-brand`}
                 >
                     <Bell className="h-5 w-5" />
                     {notificationCount > 0 && (
@@ -101,6 +132,16 @@ export default function Header({
                             {notificationCount > 99 ? '99+' : notificationCount}
                         </span>
                     )}
+                </button>
+
+                <button
+                    type="button"
+                    onClick={onLogout}
+                    aria-label="Cerrar sesión"
+                    title="Cerrar sesión"
+                    className={`${ICON_BUTTON} hover:bg-rose-500/15 hover:text-rose-300`}
+                >
+                    <LogOut className="h-5 w-5" />
                 </button>
             </div>
         </header>

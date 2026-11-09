@@ -101,6 +101,28 @@ class AccessService
     }
 
     /**
+     * Muñeca activa (clave de config 'access.dolls') según los roles del usuario, o null
+     * para el tablero de Kubix. El super admin está en el tablero en la zona de plataforma
+     * y entra a la primera muñeca en las demás casas.
+     */
+    public function dollFor(array $roles, string $context): ?string
+    {
+        $dolls = config('access.dolls', []);
+
+        if (in_array('super_admin', $roles, true)) {
+            return $context === 'platform' ? null : array_key_first($dolls);
+        }
+
+        foreach ($dolls as $doll => $definition) {
+            if (array_intersect($definition['roles'], $roles)) {
+                return $doll;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Módulos que son puerta de la casa actual y en los que el usuario puede ver
      * al menos una pestaña. Es lo que dibuja el sidebar.
      */
@@ -122,6 +144,21 @@ class AccessService
                 ->keys()
                 ->map(fn ($name) => $name === 'index' ? $module : "{$module}.{$name}"))
             ->values()
+            ->all();
+    }
+
+    /**
+     * Pestañas que el usuario puede ver en cada página del sidebar, con las mismas claves que
+     * navigation(): 'modulo' (página index) o 'modulo.pagina' (submódulo). Alimenta los atajos del menú.
+     */
+    public function navigationTabs(User $user, array $nav): array
+    {
+        return collect($nav)
+            ->mapWithKeys(function (string $key) use ($user) {
+                [$module, $page] = array_pad(explode('.', $key, 2), 2, 'index');
+
+                return [$key => $this->allowedTabs($user, $module, $page)];
+            })
             ->all();
     }
 

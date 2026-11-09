@@ -6,7 +6,7 @@ export interface SelectOption {
 }
 
 interface SelectFieldProps {
-  label: string;
+  label?: string;
   value: string | number;
   onChange: (value: string) => void;
   options: SelectOption[];
@@ -16,6 +16,8 @@ interface SelectFieldProps {
   name?: string;
   id?: string;
   className?: string;
+  /** 'bar' = píldora para fondos oscuros (barra superior). */
+  tone?: "default" | "bar";
 }
 
 export default function SelectField({
@@ -29,15 +31,18 @@ export default function SelectField({
   name,
   id,
   className = "",
+  tone = "default",
 }: SelectFieldProps) {
   const generatedId = useId();
   const inputId = id ?? generatedId;
 
   return (
     <div className={className}>
-      <label htmlFor={inputId} className="block text-sm font-medium text-fg">
-        {label} {required && <span className="text-rose-400">*</span>}
-      </label>
+      {label && (
+        <label htmlFor={inputId} className="block text-sm font-medium text-fg">
+          {label} {required && <span className="text-rose-400">*</span>}
+        </label>
+      )}
       <select
         id={inputId}
         name={name}
@@ -46,10 +51,14 @@ export default function SelectField({
         required={required}
         aria-invalid={!!error}
         aria-describedby={error ? `${inputId}-error` : undefined}
-        className={`mt-1 w-full rounded-lg border bg-surface-2 px-4 py-2.5 text-sm text-fg transition-colors focus:outline-none focus:ring-2 ${
+        className={`${label ? "mt-1 " : ""}w-full border transition-colors focus:outline-none focus:ring-2 ${
+          tone === "bar"
+            ? "rounded-full bg-white/5 px-4 py-2 text-sm font-medium text-white [&>option]:bg-surface [&>option]:text-fg"
+            : "rounded-lg bg-surface-2 px-4 py-2.5 text-sm text-fg"
+        } ${
           error
             ? "border-rose-500/50 focus:border-rose-500 focus:ring-rose-500/20"
-            : "border-line focus:border-brand/50 focus:ring-brand/50"
+            : `${tone === "bar" ? "border-sidebar-line" : "border-line"} focus:border-brand/50 focus:ring-brand/50`
         }`}
       >
         <option value="">{placeholder}</option>

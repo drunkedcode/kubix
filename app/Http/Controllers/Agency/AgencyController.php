@@ -39,6 +39,7 @@ class AgencyController extends Controller
         return Inertia::render('Agency/Index', [
             'tab'   => $tab,
             'scope' => ['value' => $territory->slug, 'label' => $territory->name],
+            'agency' => $this->agencyService->profile($territory),
             'tabs'  => $this->accessService->allowedTabs($request->user(), 'agency', 'index'),
             ...match ($tab) {
                 'general'   => $this->agencyIndex->general($territory),

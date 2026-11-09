@@ -91,6 +91,8 @@ Route::middleware('auth')->group(function () {
                 Route::middleware('can:manage-business')->group(function () {
                     Route::get('/create', [BusinessController::class, 'create'])->name('create');
                     Route::post('/', [BusinessController::class, 'store'])->name('store');
+                    Route::post('/{business}/activate', [BusinessController::class, 'activate'])
+                        ->whereNumber('business')->name('activate');
                 });
 
                 Route::get('/{business}', [BusinessController::class, 'show'])

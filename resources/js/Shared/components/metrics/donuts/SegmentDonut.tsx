@@ -44,9 +44,9 @@ export default function SegmentDonut({
 
   return (
     <section
-      className={`rounded-xl border border-navy-800 bg-navy-900 p-5 ${className}`}
+      className={`rounded-xl border border-line bg-surface p-5 ${className}`}
     >
-      <h2 className="mb-4 text-lg font-semibold text-white">{title}</h2>
+      <h2 className="mb-4 text-lg font-semibold text-fg">{title}</h2>
 
       <div className="flex items-center gap-4">
         <div className="relative h-32 w-32 shrink-0 sm:h-40 sm:w-40">
@@ -67,22 +67,22 @@ export default function SegmentDonut({
               </Pie>
               <Tooltip
                 contentStyle={{
-                  background: "#111f36",
-                  border: "1px solid #182a47",
+                  background: "var(--surface)",
+                  border: "1px solid var(--line)",
                   borderRadius: 8,
-                  color: "#fff",
+                  color: "var(--fg)",
                   fontSize: 12,
                 }}
-                itemStyle={{ color: "#fff" }}
+                itemStyle={{ color: "var(--fg)" }}
               />
             </PieChart>
           </ResponsiveContainer>
 
           <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-xl font-bold text-white">
+            <span className="text-xl font-bold text-fg">
               {total.toLocaleString("es-AR")}
             </span>
-            <span className="text-xs text-slate-400">{centerLabel}</span>
+            <span className="text-xs text-muted">{centerLabel}</span>
           </div>
         </div>
 
@@ -93,13 +93,13 @@ export default function SegmentDonut({
                 className="h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{ background: item.color }}
               />
-              <span className="min-w-0 flex-1 truncate text-slate-200">
+              <span className="min-w-0 flex-1 truncate text-fg">
                 {item.label}
               </span>
-              <span className="font-medium text-white">
+              <span className="font-medium text-fg">
                 {item.count.toLocaleString("es-AR")}
               </span>
-              <span className="w-10 text-right text-xs text-slate-400">
+              <span className="w-10 text-right text-xs text-muted">
                 {item.percent}%
               </span>
             </li>
@@ -111,7 +111,7 @@ export default function SegmentDonut({
         <button
           type="button"
           onClick={onViewAll}
-          className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-navy-700 px-3 py-2 text-sm text-slate-200 transition-colors hover:bg-navy-800 hover:text-teal-300"
+          className="mt-5 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border border-line px-3 py-2 text-sm text-fg transition-colors hover:bg-surface-2 hover:text-brand-text"
         >
           {viewAllLabel} <ArrowRight className="h-4 w-4" />
         </button>

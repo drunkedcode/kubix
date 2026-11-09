@@ -153,6 +153,10 @@ class MembershipService
 
             $this->repo->attachTerritory($user, $territory, $role);
 
+            if ($this->catalog()->get($role)['referral'] ?? false) {
+                $this->users->ensureReferralCode($user);
+            }
+
             if ($this->isManagerRole($role)) {
                 $this->repo->assignRole($user, $territory->id, $role);
             }

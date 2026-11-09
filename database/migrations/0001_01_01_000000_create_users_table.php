@@ -18,6 +18,7 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('phone', 20)->nullable()->index(); // solo dígitos
+            $table->string('referral_code', 12)->nullable()->unique(); // código del promotor para atribuir los negocios que capta
             $table->rememberToken();
             $table->timestamps();
         });

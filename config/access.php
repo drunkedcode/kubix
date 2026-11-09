@@ -13,6 +13,7 @@
 |   actions    -> lo que se HACE sin ser una pestaña (botones, rutas de acción).
 |   team_roles -> roles que se pueden asignar a una persona en un territorio.
 |   defaults   -> permisos que recibe cada rol al sincronizar.
+|   dolls      -> muñecas (VI, inmuebles...) y los roles que pertenecen a cada una.
 |
 | Flujo para agregar algo nuevo:
 |   1. Declararlo aquí (en modules o actions).
@@ -86,7 +87,9 @@ return [
             'index' => [
                 'contexts' => ['agency'],
                 'tabs' => [
-                    'list' => 'view-business-list',
+                    'list'       => 'view-business-list',
+                    'approvals'  => 'view-business-approvals',
+                    'categories' => 'view-business-categories',
                 ],
             ],
 
@@ -156,6 +159,8 @@ return [
     |   levels      -> en qué tipos de territorio se puede asignar un rol de equipo
     |                  (los que no son de gerente). Hoy solo se guardan como membresía;
     |                  se vuelven roles de Spatie cuando tengan permisos propios.
+|   referral    -> si es true, quien recibe este rol obtiene un código de promotor
+|                  para atribuirle los negocios que capta (users.referral_code).
     |
     | Quién puede asignar qué:
     |   - El super admin asigna cualquiera.
@@ -177,6 +182,7 @@ return [
             'label'       => 'Promotor',
             'description' => 'Capta negocios para el barrio.',
             'levels'      => ['neighborhood'],
+            'referral'    => true,
         ],
         'traffic_manager' => [
             'label'       => 'Gestor de tráfico',
@@ -213,6 +219,8 @@ return [
             'manage-business',
             'manage-advertising',
             'view-business-list',
+            'view-business-approvals',
+            'view-business-categories',
             'view-business-profile',
             'view-business-finance',
             'view-business-traffic',
@@ -221,6 +229,26 @@ return [
             'manage-team',
             'view-issues',
             'manage-issues',
+        ],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | DOLLS: muñecas (productos) y los roles que pertenecen a cada una
+    |--------------------------------------------------------------------------
+    |
+    | Kubix es el tablero; cada producto (VI, inmuebles...) es una muñeca con su
+    | propio tema. El rol pertenece a su muñeca: la muñeca de una persona sale de
+    | su rol y quien está dentro de una no ve las otras. El super admin se mueve
+    | libre: en la zona de plataforma está en el tablero (tema Kubix) y en las demás
+    | casas entra a la primera muñeca (hasta que exista un selector).
+    |
+    | La clave es el nombre del tema en CSS: [data-doll="vi"] en resources/css/app.css.
+    |
+    */
+    'dolls' => [
+        'vi' => [
+            'roles' => ['country_admin', 'state_admin', 'city_admin', 'district_admin', 'promoter', 'traffic_manager'],
         ],
     ],
 ];

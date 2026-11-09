@@ -70,6 +70,29 @@ class HandleInertiaRequests extends Middleware
                 )
                 : [],
 
+            // Pestañas visibles por cada módulo del sidebar (atajos hijos del menú). Diferido, como "nav".
+            'navTabs' => fn() => $user
+                ? app(AccessService::class)->navigationTabs(
+                    $user,
+                    app(AccessService::class)->navigation(
+                        $user,
+                        app()->bound('currentTerritory') ? app('currentTerritory') : null,
+                        $request->route()?->getName(),
+                    ),
+                )
+                : [],
+
+            // Muñeca activa (define el tema): clave de config 'access.dolls' o null = tablero Kubix.
+            'doll' => fn() => $user
+                ? app(AccessService::class)->dollFor(
+                    $isSuper ? ['super_admin'] : $user->getRoleNames()->all(),
+                    app(AccessService::class)->contextFor(
+                        app()->bound('currentTerritory') ? app('currentTerritory') : null,
+                        $request->route()?->getName(),
+                    ),
+                )
+                : null,
+
             'flash' => [
                 'success' => fn() => $request->session()->get('success'),
                 'error'   => fn() => $request->session()->get('error'),

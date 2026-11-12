@@ -4,8 +4,10 @@ namespace App\Services\Domains\Membership;
 
 use App\Models\Territory;
 use App\Models\User;
+use App\Services\Domains\Activity\ActivityService;
 use App\Services\Domains\Territory\TerritoryService;
 use App\Services\Domains\User\UserService;
+use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -16,6 +18,7 @@ class MembershipService
         protected MembershipRepository $repo,
         protected TerritoryService $territories,
         protected UserService $users,
+        protected ActivityService $activity,
     ) {}
 
     public function isSuperAdmin(User $user): bool
@@ -70,6 +73,25 @@ class MembershipService
         ];
     }
 
+    /** Perfil de una persona del equipo del territorio (404 si no es del equipo). */
+    public function memberProfile(int $territoryId, int $userId): array
+    {
+        $row = $this->repo->memberOf($this->findTerritory($territoryId), $userId);
+
+        abort_if(! $row, 404);
+
+        return [
+            'id'           => $row->id,
+            'name'         => $row->name,
+            'email'        => $row->email,
+            'phone'        => $row->phone,
+            'role'         => $row->role,
+            'roleLabel'    => $this->roleLabel($row->role),
+            'since'        => Carbon::parse($row->joined_at)->format('d/m/Y'),
+            'referralCode' => $row->referral_code,
+        ];
+    }
+
     /** Gerente de cada territorio (el del rol que corresponde a su tipo), indexado por id de territorio. */
     public function managersOf(Collection $territories): array
     {
@@ -108,7 +130,7 @@ class MembershipService
 
     // --- Asignar y quitar ---
 
-    /** Agrega a la persona al equipo con ese rol: membresía + rol de Spatie (si es de gerente). */
+    /** Agrega a la persona al equipo con ese rol: membresía + rol de Spatie. */
     public function assign(User $actor, int $territoryId, int $userId, string $role): void
     {
         $territory = $this->findTerritory($territoryId);
@@ -120,7 +142,7 @@ class MembershipService
 
         if (! in_array($role, $assignable, true)) {
             throw ValidationException::withMessages([
-                'role' => 'No podés asignar ese rol en este territorio.',
+                'role' => 'Você não pode atribuir essa função neste território.',
             ]);
         }
 
@@ -131,7 +153,7 @@ class MembershipService
         // (por ejemplo, Pedro degradándose a sí mismo de gerente a promotor).
         if ($previous && ! in_array($previous, $assignable, true)) {
             throw ValidationException::withMessages([
-                'user_id' => 'Esa persona ya tiene un rol que no podés modificar.',
+                'user_id' => 'Essa pessoa já tem uma função que você não pode alterar.',
             ]);
         }
 
@@ -141,13 +163,13 @@ class MembershipService
 
             if ($otherManager->isNotEmpty()) {
                 throw ValidationException::withMessages([
-                    'user_id' => 'Este barrio ya tiene gerente. Quitalo primero.',
+                    'user_id' => 'Este bairro já tem gerente. Remova-o primeiro.',
                 ]);
             }
         }
 
-        DB::transaction(function () use ($user, $territory, $role, $previous) {
-            if ($previous && $previous !== $role && $this->isManagerRole($previous)) {
+        DB::transaction(function () use ($actor, $user, $territory, $role, $previous) {
+            if ($previous && $previous !== $role) {
                 $this->repo->removeRole($user, $territory->id, $previous);
             }
 
@@ -157,9 +179,9 @@ class MembershipService
                 $this->users->ensureReferralCode($user);
             }
 
-            if ($this->isManagerRole($role)) {
-                $this->repo->assignRole($user, $territory->id, $role);
-            }
+            $this->repo->assignRole($user, $territory->id, $role);
+
+            $this->activity->record($territory->id, $actor->id, $user, 'member.assigned', ['name' => $user->name, 'role' => $role]);
         });
     }
 
@@ -176,12 +198,12 @@ class MembershipService
         abort_if(! $role, 404);
         abort_if(! in_array($role, $this->assignableRoles($actor, $territory), true), 403);
 
-        DB::transaction(function () use ($user, $territory, $role) {
+        DB::transaction(function () use ($actor, $user, $territory, $role) {
             $this->repo->detachTerritory($user, $territory);
 
-            if ($this->isManagerRole($role)) {
-                $this->repo->removeRole($user, $territory->id, $role);
-            }
+            $this->repo->removeRole($user, $territory->id, $role);
+
+            $this->activity->record($territory->id, $actor->id, $user, 'member.removed', ['name' => $user->name, 'role' => $role]);
         });
     }
 

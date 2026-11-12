@@ -47,7 +47,7 @@ class TerritoryController extends Controller
             boundarySource: $d['boundary_source'] ?? 'osm',
         );
 
-        return back()->with('success', "Territorio \"{$territorio->name}\" dado de alta.");
+        return back()->with('success', "Território \"{$territorio->name}\" cadastrado.");
     }
 
     /** Actualiza un territorio */
@@ -55,6 +55,6 @@ class TerritoryController extends Controller
     {
         $territorio = $this->territoryService->updateBoundary($territory, $request->validated()['polygon']);
 
-        return back()->with('success', "Límite de \"{$territorio->name}\" actualizado.");
+        return back()->with('success', "Limite de \"{$territorio->name}\" atualizado.");
     }
 }

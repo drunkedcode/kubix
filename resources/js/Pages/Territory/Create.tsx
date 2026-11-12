@@ -1,3 +1,4 @@
+import type { FormDataConvertible } from '@inertiajs/core';
 import { useEffect, useCallback, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import { Building2, MapPin, PieChart } from 'lucide-react';
@@ -94,7 +95,7 @@ export default function Create({
       mapMarkers.push({
         id: neighborhood.osm_id,
         title: neighborhood.name,
-        subtitle: 'Sin límite — dibujar manualmente',
+        subtitle: 'Sem limite — desenhe manualmente',
         lat,
         lng,
         color: '#64748b',
@@ -144,7 +145,7 @@ export default function Create({
 
     if (isOperated && neighborhood.id) {
       router.patch(`/territories/${neighborhood.id}`, {
-        polygon,
+        polygon: polygon as unknown as FormDataConvertible,
       }, {
         preserveScroll: true,
         onSuccess: () => {},
@@ -160,7 +161,7 @@ export default function Create({
       name: neighborhood.name,
       lat,
       lng,
-      polygon,
+      polygon: polygon as unknown as FormDataConvertible,
     }, {
       preserveScroll: true,
       onSuccess: () => {},
@@ -168,36 +169,29 @@ export default function Create({
   };
 
   return (
-    <AdminLayout title="Nuevo Territorio" subtitle="Explora y define territorios para dar de alta">
-      <Head title="Nuevo Territorio" />
+    <AdminLayout title="Novo Território" subtitle="Explore e defina territórios para cadastrar">
+      <Head title="Novo Território" />
 
-      <div className="space-y-4 p-2 sm:p-6">
-        {/* ✅ Solo agregamos onSelectionChange */}
-        <TerritoryFilterBar
-          selection={selection}
-          onSelectionChange={handleFilterChange}
-          countries={countries}
-          states={states}
-          cities={cities}
-          neighborhoods={neighborhoods}
-        />
-
-        <div className="overflow-x-auto">
-          <div className="flex min-w-[700px] gap-4">
-            {cards.map((c, i) => (
-              <StatCard
-                key={c.label}
-                className="min-w-0 flex-1"
-                label={c.label}
-                value={c.value}
-                tone={c.tone}
-                icon={ICONS[i % ICONS.length]}
-              />
-            ))}
-          </div>
+      <div className="space-y-4">
+        {/* La barra de filtros está pensada para el topbar oscuro: se apoya sobre su mismo fondo. */}
+        <div className="rounded-xl bg-sidebar p-3">
+          <TerritoryFilterBar
+            selection={selection}
+            onSelectionChange={handleFilterChange}
+            countries={countries}
+            states={states}
+            cities={cities}
+            neighborhoods={neighborhoods}
+          />
         </div>
 
-        <div className="relative">
+        <div className="grid gap-3 sm:grid-cols-3">
+          {cards.map((c, i) => (
+            <StatCard key={c.label} label={c.label} value={c.value} tone={c.tone} icon={ICONS[i % ICONS.length]} />
+          ))}
+        </div>
+
+        <div className="relative overflow-hidden rounded-xl border border-line">
           <BaseMap key={JSON.stringify(selection)} center={center} zoom={zoom} className="h-[480px]">
             {neighborhood && (
               <DrawLayer
@@ -218,7 +212,7 @@ export default function Create({
               lng={getCoords(neighborhood).isValid ? getCoords(neighborhood).lng : null}
               polygon={polygon}
               canSubmit={canSubmit}
-              disabledReason={canSubmit ? undefined : 'Dibuja el límite en el mapa (lápiz) antes de guardar.'}
+              disabledReason={canSubmit ? undefined : 'Desenhe o limite no mapa (lápis) antes de salvar.'}
               onSubmit={handleSubmit}
               onClose={closeCard}
             />

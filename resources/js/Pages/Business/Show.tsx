@@ -1,34 +1,39 @@
 import { Head, router } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/AdminLayout";
-import { LayoutDashboard, DollarSign, Megaphone, MousePointerClick  } from "lucide-react";
+import { LayoutDashboard, DollarSign, Megaphone, MousePointerClick } from "lucide-react";
 import Tabs, { type TabItem } from "@/Shared/ui/Tabs";
-import ProfileTab, { type BusinessProfile } from "./Tabs/ProfileTab";
+import BusinessHero, { type BusinessKpi, type BusinessProfile } from "./Partials/BusinessHero";
+import OverviewTab, { type OverviewData } from "./Tabs/OverviewTab";
 import FinanceTab, { type FinanceData } from "./Tabs/FinanceTab";
 import AdsTab, { type AdsData } from "./Tabs/AdsTab";
-import TrafficTab from "./Tabs/TrafficTab";
+import TrafficTab, { type TrafficData } from "./Tabs/TrafficTab";
 
-type TabKey = "profile" | "finance" | "traffic"| "ads";
+type TabKey = "profile" | "finance" | "traffic" | "ads";
 
 interface ShowProps {
   business: BusinessProfile;
+  kpis: BusinessKpi[];
   territorySlug: string;
+  territoryName: string;
   activeTab: TabKey;
   tabs: TabKey[];
+  overview?: OverviewData;
   adsData?: AdsData;
+  trafficData?: TrafficData;
   financeData?: FinanceData;
 }
 
 const ALL_TABS: TabItem<TabKey>[] = [
-  { key: "profile", label: "Perfil", icon: LayoutDashboard },
-  { key: "finance", label: "Finanzas", icon: DollarSign },
-  { key: "traffic", label: "Tráfico", icon: Megaphone },
-  { key: "ads", label: "Ads", icon: MousePointerClick },
+  { key: "profile", label: "Visão Geral", icon: LayoutDashboard },
+  { key: "finance", label: "Financeiro", icon: DollarSign },
+  { key: "traffic", label: "Tráfego", icon: Megaphone },
+  { key: "ads", label: "Campanhas", icon: MousePointerClick },
 ];
 
 const CONTENT: Record<TabKey, (p: ShowProps) => React.ReactNode> = {
-  profile: (p) => <ProfileTab business={p.business} />,
+  profile: (p) => p.overview && <OverviewTab data={p.overview} />,
   finance: (p) => <FinanceTab data={p.financeData} />,
-  traffic: () => <TrafficTab />,
+  traffic: (p) => <TrafficTab data={p.trafficData} />,
   ads: (p) => <AdsTab data={p.adsData} />,
 };
 
@@ -46,17 +51,14 @@ export default function Show(props: ShowProps) {
     );
 
   return (
-    <AdminLayout title="Negocio" subtitle={business.name}>
+    <AdminLayout
+      title={business.name}
+      crumb="Detalhes do Negócio"
+      hero={<BusinessHero business={business} territoryName={props.territoryName} kpis={props.kpis} />}
+    >
       <Head title={business.name} />
 
-      <div className="flex flex-col gap-2 p-2 sm:p-6">
-        <button
-          onClick={() => router.visit(route("businesses.index", { territory: territorySlug }))}
-          className="w-fit text-xs text-navy-400 hover:text-navy-200"
-        >
-          ← Volver a negocios
-        </button>
-
+      <div className="flex flex-col gap-5">
         <Tabs tabs={visibleTabs} active={activeTab} onChange={changeTab} />
         <div>{CONTENT[activeTab](props)}</div>
       </div>

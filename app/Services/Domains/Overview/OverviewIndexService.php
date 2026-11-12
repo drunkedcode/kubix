@@ -51,7 +51,7 @@ class OverviewIndexService
 
         return [
             'general' => [
-                'stats'    => $this->metrics->summary($ids),
+                'stats'    => $this->metrics->agencyKpis($ids),
                 'markers'  => $this->pins($drawAsPin),
                 'areas'    => $drawAsArea
                     ->map(fn ($e) => [

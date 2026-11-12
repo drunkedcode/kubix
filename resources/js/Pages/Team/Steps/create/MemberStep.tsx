@@ -19,8 +19,8 @@ type Errors = Partial<Record<keyof MemberData, string>>;
 
 export function validateMember(v: MemberData): Errors {
   const errors: Errors = {};
-  if (!v.user) errors.user = "Buscá y elegí un usuario";
-  if (!v.role) errors.role = "Elegí el rol";
+  if (!v.user) errors.user = "Busque e escolha um usuário";
+  if (!v.role) errors.role = "Escolha a função";
   return errors;
 }
 
@@ -49,8 +49,8 @@ export default function MemberStep({
 
   return (
     <StepCard
-      title="Persona y rol"
-      description="Buscá a la persona por su correo y asignale su rol en este territorio."
+      title="Pessoa e função"
+      description="Busque a pessoa pelo e-mail e atribua a função dela neste território."
     >
       <UserLookup
         lookupUrl={lookupUrl}
@@ -61,16 +61,16 @@ export default function MemberStep({
 
       <div className="grid gap-1">
         <SelectField
-          label="Rol"
+          label="Função"
           value={values.role}
           onChange={(role: string) => set({ role })}
           options={roles.map((r) => ({ value: r.value, label: r.label }))}
-          placeholder="Seleccionar rol"
+          placeholder="Selecionar função"
         />
         {selectedRole?.description && (
-          <p className="text-xs text-slate-400">{selectedRole.description}</p>
+          <p className="text-xs text-muted">{selectedRole.description}</p>
         )}
-        {show && errors.role && <p className="text-xs text-rose-400">{errors.role}</p>}
+        {show && errors.role && <p className="text-xs text-rose-500">{errors.role}</p>}
       </div>
     </StepCard>
   );

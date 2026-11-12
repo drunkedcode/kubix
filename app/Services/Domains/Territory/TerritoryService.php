@@ -44,7 +44,7 @@ class TerritoryService
         $cityName = collect($geocoder->listCities($stateCode))->firstWhere('code', $cityCode)['name'] ?? null;
 
         if (! $cityName) {
-            throw ValidationException::withMessages(['city' => 'La ciudad no existe en el catálogo.']);
+            throw ValidationException::withMessages(['city' => 'A cidade não existe no catálogo.']);
         }
 
         return DB::transaction(function () use (
@@ -91,7 +91,7 @@ class TerritoryService
             });
 
             if ($this->repo->neighborhoodExists($ciudad->id, $osmId)) {
-                throw ValidationException::withMessages(['osm_id' => 'Este barrio ya está dado de alta.']);
+                throw ValidationException::withMessages(['osm_id' => 'Este bairro já está cadastrado.']);
             }
 
             $centroid = $this->centroidOf($polygon);

@@ -80,6 +80,11 @@ Route::middleware('auth')->group(function () {
                 Route::get('/', [AgencyController::class, 'issues'])
                     ->middleware('can:view-issues')
                     ->name('index');
+
+                Route::post('/{issue}/status', [AgencyController::class, 'updateIssue'])
+                    ->middleware('can:manage-issues')
+                    ->whereNumber('issue')
+                    ->name('status');
             });
 
             Route::prefix('businesses')->name('businesses.')->group(function () {
@@ -87,10 +92,7 @@ Route::middleware('auth')->group(function () {
                     ->middleware('can:view-business-list')
                     ->name('index');
 
-                // Rutas fijas primero: si no, '/create' lo captura '/{business}'.
                 Route::middleware('can:manage-business')->group(function () {
-                    Route::get('/create', [BusinessController::class, 'create'])->name('create');
-                    Route::post('/', [BusinessController::class, 'store'])->name('store');
                     Route::post('/{business}/activate', [BusinessController::class, 'activate'])
                         ->whereNumber('business')->name('activate');
                 });
@@ -103,8 +105,12 @@ Route::middleware('auth')->group(function () {
             // Equipo: quién trabaja en este territorio (cada nivel asigna lo que le corresponde).
             Route::prefix('team')->name('team.')->middleware('can:view-team')->group(function () {
                 Route::get('/', [TeamController::class, 'index'])->name('index');
+                Route::get('/{user}', [TeamController::class, 'show'])
+                    ->whereNumber('user')
+                    ->name('show');
 
                 Route::middleware('can:manage-team')->group(function () {
+                    Route::post('/{user}/goal', [TeamController::class, 'setGoal'])->whereNumber('user')->name('goal.update');
                     Route::get('/create', [TeamController::class, 'create'])->name('create');
                     Route::get('/lookup', [TeamController::class, 'lookup'])
                         ->middleware('throttle:20,1')

@@ -2,7 +2,9 @@
 
 namespace App\Services\Domains\Metrics;
 
+use App\Services\Domains\Analytics\AnalyticsService;
 use App\Services\Domains\Business\BusinessService;
+use App\Services\Domains\Review\ReviewService;
 
 /*
 |--------------------------------------------------------------------------
@@ -10,106 +12,89 @@ use App\Services\Domains\Business\BusinessService;
 |--------------------------------------------------------------------------
 | Recibe siempre una lista de ids de territorios: uno en un barrio, varios en
 | un totalizador. Todo número de pantalla sale de aquí; las páginas deciden
-| QUÉ mostrar y no cuentan. Cuando VI mande datos reales, los // MOCK se
-| reemplazan solo en este archivo.
+| QUÉ mostrar y no cuentan. Todo número sale de datos reales.
 */
 
 class MetricsService
 {
     public function __construct(
         protected BusinessService $businesses,
+        protected AnalyticsService $analytics,
+        protected ReviewService $reviews,
     ) {}
 
-    /** Las tarjetas de la pestaña General. */
-    public function summary(array $territoryIds): array
-    {
-        $registered = $this->businesses->countForTerritories($territoryIds);
-
-        return [
-            ['label' => 'Negocios registrados', 'value' => $registered, 'icon' => 'building', 'tone' => 'teal',  'trend' => 12], // MOCK: trend
-            ['label' => 'Al día',               'value' => 31,  'icon' => 'star',     'tone' => 'teal',  'trend' => 8],  // MOCK
-            ['label' => 'Por vencer',           'value' => 10,  'icon' => 'contrast', 'tone' => 'amber', 'trend' => -3], // MOCK
-            ['label' => 'Vencidos',             'value' => 7,   'icon' => 'flame',    'tone' => 'rose',  'trend' => 5],  // MOCK
-            ['label' => 'Onlines',              'value' => 150, 'icon' => 'flame',    'tone' => 'teal',  'trend' => 80], // MOCK
-        ];
-    }
-
-    /** Las 4 tarjetas de la portada de Agencia. Real: Negócios Ativos (el valor); el resto, MOCK. */
+    /** Las 4 tarjetas de la portada de Agencia: uso de la app y negocios, con variación a 28 días. */
     public function agencyKpis(array $territoryIds): array
     {
-        $active = $this->activeCount($territoryIds);
+        $ids      = $this->businesses->idsForTerritories($territoryIds);
+        $usage    = $this->analytics->summary($ids);
+        $weekly   = $this->analytics->weekly($ids);
+        $rating   = $this->reviews->summary($ids);
+        $monthAgo = now()->subDays(AnalyticsService::PERIOD_DAYS);
+        $active   = $this->activeCount($territoryIds);
 
         return [
-            ['label' => 'Total de Usuários',    'value' => 12480,     'icon' => 'users',     'tone' => 'amber',  'trend' => 12, 'spark' => [3, 4, 4, 6, 5, 7, 8, 9]], // MOCK
-            ['label' => 'Negócios Ativos',      'value' => $active,   'icon' => 'store',     'tone' => 'blue',   'trend' => 8,  'spark' => [2, 3, 3, 4, 6, 5, 7, 8]], // MOCK: trend y spark
-            ['label' => 'Oportunidades',        'value' => 87,        'icon' => 'briefcase', 'tone' => 'purple', 'trend' => 24, 'spark' => [2, 2, 4, 3, 5, 6, 6, 9]], // MOCK
-            ['label' => 'Avaliação da Agência', 'value' => '4,8 / 5', 'icon' => 'star',      'tone' => 'green',  'trend' => 4,  'spark' => [4, 4, 5, 5, 6, 6, 7, 8]], // MOCK
+            $this->card('Visualizações', $usage['view']['value'], 'eye', 'amber', $usage['view']['trend'], array_column($weekly, 'views')),
+            $this->card('Negócios Ativos', $active, 'store', 'blue', $this->growth($active, $this->businesses->activeAsOf($territoryIds, $monthAgo))),
+            $this->card('Conversões', $usage['conversion']['value'], 'cart', 'purple', $usage['conversion']['trend'], array_column($weekly, 'conversions')),
+            $this->card('Avaliação da Agência', $this->ratingLabel($rating, ' / 5'), 'star', 'green'),
         ];
     }
 
-    /**
-     * Gráfico de rendimiento: una fila por semana. Real: businesses (acumulado de altas);
-     * engagement y users son MOCK hasta que la app mande eventos.
-     */
+    /** Gráfico de rendimiento: una fila por semana (engajamento, conversões y negócios registrados acumulados). */
     public function performance(array $territoryIds): array
     {
-        $trend      = $this->businesses->trendForTerritories($territoryIds);
-        $engagement = [3200, 3600, 3400, 4100, 3900, 4600, 4400, 5200]; // MOCK
-        $users      = [1500, 1700, 1600, 2000, 2200, 2100, 2600, 2900]; // MOCK
+        $trend  = $this->businesses->trendForTerritories($territoryIds);
+        $weekly = $this->analytics->weekly($this->businesses->idsForTerritories($territoryIds));
 
         return array_map(fn (array $point, int $i) => [
-            'label'      => $point['label'],
-            'engagement' => $engagement[$i] ?? 0,
-            'users'      => $users[$i] ?? 0,
-            'businesses' => $point['count'],
+            'label'       => $point['label'],
+            'engagement'  => ($weekly[$i]['views'] ?? 0) + ($weekly[$i]['clicks'] ?? 0) + ($weekly[$i]['conversions'] ?? 0),
+            'conversions' => $weekly[$i]['conversions'] ?? 0,
+            'businesses'  => $point['count'],
         ], $trend, array_keys($trend));
     }
 
-    /** Negocios activos destacados. Real: el negocio; rating y trend son MOCK (no hay valoraciones aún). */
+    /** Los negocios activos más vistos del período, con su valoración real. */
     public function topBusinesses(array $territoryIds, int $limit = 3): array
     {
-        $ratings = [4.9, 4.8, 4.7]; // MOCK
-        $trends  = [20, 18, 15];    // MOCK
+        $active  = $this->businesses->listForTerritories($territoryIds)->where('status', 'active')->keyBy('id');
+        $top     = $this->analytics->topByViews($active->keys()->all(), $limit);
+        $ratings = $this->reviews->averagesFor(array_column($top, 'id'));
 
-        return $this->businesses->listForTerritories($territoryIds)
-            ->where('status', 'active')
-            ->take($limit)
-            ->values()
-            ->map(fn ($business, int $i) => [
-                'id'      => $business->id,
-                'name'    => $business->name,
-                'segment' => $business->segment,
-                'rating'  => $ratings[$i] ?? 4.5,
-                'trend'   => $trends[$i] ?? 0,
-            ])
-            ->all();
+        return array_map(fn (array $row) => [
+            'id'      => $row['id'],
+            'name'    => $active[$row['id']]->name,
+            'segment' => $active[$row['id']]->segment,
+            'rating'  => $ratings[$row['id']] ?? 0.0,
+            'trend'   => $row['trend'] ?? 0,
+        ], $top);
     }
 
-    /** Salud de cada módulo en %. Real: Negócios (activos sobre registrados); el resto, MOCK. */
-    public function moduleStatus(array $territoryIds): array
-    {
-        $registered = $this->businesses->countForTerritories($territoryIds);
-        $negocios   = $registered > 0 ? (int) round($this->activeCount($territoryIds) / $registered * 100) : 0;
-
-        return [
-            ['label' => 'Agência',  'value' => 100,       'icon' => 'building', 'tone' => 'amber'],  // MOCK
-            ['label' => 'Negócios', 'value' => $negocios, 'icon' => 'store',    'tone' => 'blue'],
-            ['label' => 'Equipes',  'value' => 95,        'icon' => 'users',    'tone' => 'purple'], // MOCK
-            ['label' => 'Kubix',    'value' => 97,        'icon' => 'box',      'tone' => 'green'],  // MOCK
-        ];
-    }
-
-    /** Las 4 tarjetas de Negócios. Real: los tres conteos; Avaliação Média y las tendencias, MOCK. */
+    /** Las 4 tarjetas de Negócios: conteos con su crecimiento a 28 días y la valoración media. */
     public function businessKpis(array $territoryIds): array
     {
-        $all = $this->businesses->listForTerritories($territoryIds);
+        $all      = $this->businesses->listForTerritories($territoryIds);
+        $rating   = $this->reviews->summary($all->pluck('id')->all());
+        $monthAgo = now()->subDays(AnalyticsService::PERIOD_DAYS);
+        $active   = $all->where('status', 'active')->count();
 
         return [
-            ['label' => 'Total de Negócios', 'value' => $all->count(),                          'icon' => 'store', 'tone' => 'amber',  'trend' => 8],  // MOCK: trend
-            ['label' => 'Aprovados',         'value' => $all->where('status', 'active')->count(),  'icon' => 'check', 'tone' => 'green',  'trend' => 6],  // MOCK: trend
-            ['label' => 'Pendentes',         'value' => $all->where('status', 'standby')->count(), 'icon' => 'clock', 'tone' => 'orange', 'trend' => -2], // MOCK: trend
-            ['label' => 'Avaliação Média',   'value' => '4,7',                                  'icon' => 'star',  'tone' => 'amber',  'trend' => 2],  // MOCK
+            $this->card('Total de Negócios', $all->count(), 'store', 'amber', $this->growth($all->count(), $this->businesses->registeredAsOf($territoryIds, $monthAgo))),
+            $this->card('Aprovados', $active, 'check', 'green', $this->growth($active, $this->businesses->activeAsOf($territoryIds, $monthAgo))),
+            $this->card('Pendentes', $all->where('status', 'standby')->count(), 'clock', 'orange'),
+            $this->card('Avaliação Média', $this->ratingLabel($rating), 'star', 'amber'),
         ];
+    }
+
+    /** Negocios por categoría (las que tienen alguno), de mayor a menor. */
+    public function segments(array $territoryIds): array
+    {
+        return collect($this->businesses->countBySegment($territoryIds))
+            ->where('total', '>', 0)
+            ->map(fn (array $segment) => ['label' => $segment['label'], 'count' => $segment['total']])
+            ->values()
+            ->all();
     }
 
     private function activeCount(array $territoryIds): int
@@ -117,16 +102,27 @@ class MetricsService
         return $this->businesses->listForTerritories($territoryIds)->where('status', 'active')->count();
     }
 
-    // MOCK: pendiente de la columna real de categoría/segmento
-    public function segments(array $territoryIds): array
+    /** Una tarjeta; la variación y el mini gráfico solo van si hay datos. */
+    private function card(string $label, int|string $value, string $icon, string $tone, ?int $trend = null, ?array $spark = null): array
     {
-        return [
-            ['label' => 'Restaurantes', 'count' => 18],
-            ['label' => 'Salones',      'count' => 12],
-            ['label' => 'Barberías',    'count' => 9],
-            ['label' => 'Salud',        'count' => 5],
-            ['label' => 'Otros',        'count' => 4],
-        ];
+        return array_filter([
+            'label' => $label,
+            'value' => $value,
+            'icon'  => $icon,
+            'tone'  => $tone,
+            'trend' => $trend,
+            'spark' => $spark,
+        ], fn ($field) => $field !== null);
     }
-    
+
+    /** Crecimiento (%) de $now respecto de $before; null si antes no había nada. */
+    private function growth(int $now, int $before): ?int
+    {
+        return $before > 0 ? (int) round(($now - $before) / $before * 100) : null;
+    }
+
+    private function ratingLabel(array $rating, string $suffix = ''): string
+    {
+        return $rating['count'] > 0 ? number_format($rating['score'], 1, ',', '.') . $suffix : '—';
+    }
 }

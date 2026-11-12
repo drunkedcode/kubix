@@ -14,13 +14,13 @@ function Section({
   rows: [string, string | undefined][];
 }) {
   return (
-    <div className="rounded-lg border border-navy-700 p-4">
-      <h3 className="mb-2 text-sm font-semibold text-teal-400">{title}</h3>
+    <div className="rounded-lg border border-line p-4">
+      <h3 className="mb-2 text-sm font-semibold text-brand-text">{title}</h3>
       <dl className="grid gap-1 text-sm">
         {rows.map(([label, val]) => (
           <div key={label} className="flex justify-between gap-4">
-            <dt className="text-slate-400">{label}</dt>
-            <dd className="text-right text-slate-200">{val || "—"}</dd>
+            <dt className="text-muted">{label}</dt>
+            <dd className="text-right text-fg">{val || "—"}</dd>
           </div>
         ))}
       </dl>
@@ -44,21 +44,21 @@ export default function ReviewStep({
 
   return (
     <StepCard
-      title="Revisión"
-      description="Confirmá los datos antes de agregar a la persona al equipo."
+      title="Revisão"
+      description="Confirme os dados antes de adicionar a pessoa à equipe."
     >
       <Section
-        title="Persona"
+        title="Pessoa"
         rows={[
-          ["Nombre", member?.user?.name],
-          ["Correo", member?.user?.email],
+          ["Nome", member?.user?.name],
+          ["E-mail", member?.user?.email],
         ]}
       />
       <Section
-        title="Asignación"
+        title="Atribuição"
         rows={[
-          ["Rol", roleLabel],
-          ["Territorio", territoryName],
+          ["Função", roleLabel],
+          ["Território", territoryName],
         ]}
       />
     </StepCard>

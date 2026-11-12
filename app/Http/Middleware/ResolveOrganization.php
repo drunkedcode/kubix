@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Models\Territory;
 use App\Services\Domains\Membership\MembershipService;
+use App\Services\Domains\Presence\PresenceService;
 use Closure;
 use Illuminate\Http\Request;
 use Spatie\Permission\PermissionRegistrar;
@@ -29,6 +30,7 @@ class ResolveOrganization
 {
     public function __construct(
         protected MembershipService $memberships,
+        protected PresenceService $presence,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
@@ -41,6 +43,10 @@ class ResolveOrganization
 
         $teamId = $territory->id;
         $user   = $request->user();
+
+        if ($user) {
+            $this->presence->touch($territory, $user->id, PresenceService::TEAM);
+        }
 
         if ($user && ! $this->memberships->isSuperAdmin($user)) {
             $teamId = $this->memberships->coveringTerritory($user, $territory)?->id ?? $territory->id;

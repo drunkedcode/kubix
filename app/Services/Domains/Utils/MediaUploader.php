@@ -142,7 +142,7 @@ class MediaUploader
         $rule = self::RULES[$kind];
 
         if (! $file->isValid()) {
-            throw new RuntimeException('El archivo no se subió correctamente.');
+            throw new RuntimeException('O arquivo não foi enviado corretamente.');
         }
 
         $ext = strtolower($file->getClientOriginalExtension());
@@ -152,7 +152,7 @@ class MediaUploader
             throw new InvalidArgumentException('Tipo de archivo no permitido para ' . $kind . '.');
         }
         if ($file->getSize() > $rule['max_mb'] * 1024 * 1024) {
-            throw new InvalidArgumentException("El archivo supera el máximo de {$rule['max_mb']} MB.");
+            throw new InvalidArgumentException("O arquivo excede o máximo de {$rule['max_mb']} MB.");
         }
 
         $dir = $this->clean($folder) . '/' . $kind;
@@ -194,7 +194,7 @@ class MediaUploader
             ->values();
 
         if ($parts->isEmpty()) {
-            throw new InvalidArgumentException('La carpeta no puede estar vacía.');
+            throw new InvalidArgumentException('A pasta não pode estar vazia.');
         }
 
         return $parts->implode('/');

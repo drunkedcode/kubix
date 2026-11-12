@@ -97,8 +97,8 @@ export default function BaseWizard({
                                 <div
                                     className={`h-9 w-9 rounded-full flex items-center justify-center text-sm font-bold transition-all z-10 ${
                                         isCompleted || isCurrent
-                                            ? "bg-teal-500 text-white shadow-md shadow-teal-500/20"
-                                            : "bg-navy-800 text-slate-400 border border-navy-700"
+                                            ? "bg-brand text-brand-fg shadow-md"
+                                            : "bg-surface-2 text-muted border border-line"
                                     }`}
                                 >
                                     {isCompleted ? (
@@ -111,10 +111,10 @@ export default function BaseWizard({
                                 <span
                                     className={`text-xs font-medium text-center px-1 leading-tight ${
                                         isCurrent
-                                            ? "text-teal-400 font-semibold"
+                                            ? "text-brand-text font-semibold"
                                             : isCompleted
-                                              ? "text-slate-400"
-                                              : "text-slate-500"
+                                              ? "text-muted"
+                                              : "text-muted"
                                     }`}
                                 >
                                     {s.label}
@@ -124,8 +124,8 @@ export default function BaseWizard({
                                     <div
                                         className={`absolute top-4 left-1/2 w-full h-0.5 -translate-y-1/2 ${
                                             isCompleted
-                                                ? "bg-teal-500"
-                                                : "bg-navy-800"
+                                                ? "bg-brand"
+                                                : "bg-line"
                                         }`}
                                     />
                                 )}
@@ -152,15 +152,15 @@ export default function BaseWizard({
                 <div className="flex w-full max-w-lg justify-between">
                     <button
                         onClick={handleBack}
-                        className="rounded-lg px-4 py-2.5 text-sm font-medium text-slate-300 hover:bg-navy-800 transition-colors"
+                        className="rounded-lg px-4 py-2.5 text-sm font-medium text-fg hover:bg-surface-2 transition-colors"
                     >
-                        {index === 0 ? "Cancelar" : "Atrás"}
+                        {index === 0 ? "Cancelar" : "Voltar"}
                     </button>
                     <button
                         onClick={handleNext}
-                        className="rounded-lg bg-teal-500 px-5 py-2.5 text-sm font-semibold text-navy-950 hover:bg-teal-400 transition-colors"
+                        className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg hover:bg-brand-hover transition-colors"
                     >
-                        {isLast ? (step.finishLabel ?? "Finalizar") : "Siguiente"}
+                        {isLast ? (step.finishLabel ?? "Finalizar") : "Próximo"}
                     </button>
                 </div>
             )}

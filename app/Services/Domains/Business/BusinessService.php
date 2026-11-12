@@ -5,6 +5,7 @@ namespace App\Services\Domains\Business;
 use App\Enums\BusinessSegment;
 use App\Models\Business;
 use App\Models\User;
+use App\Services\Domains\Activity\ActivityService;
 use App\Services\Domains\Location\LocationService;
 use Carbon\Carbon;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -19,6 +20,7 @@ class BusinessService
     public function __construct(
         protected BusinessRepository $repo,
         protected LocationService $locationService,
+        protected ActivityService $activity,
     ) {}
 
     public function register(array $data, ?int $userId = null): array
@@ -36,6 +38,10 @@ class BusinessService
         ]);
 
         $locationResult = $this->locationService->saveFor($business, $data['location'] ?? [], $userId);
+
+        if ($territoryId = $this->territoryIdOf($business)) {
+            $this->activity->record($territoryId, $userId, $business, 'business.registered', ['name' => $business->name]);
+        }
 
         return ['business' => $business, 'location' => $locationResult];
     }
@@ -91,7 +97,13 @@ class BusinessService
     /** Pasa el negocio a activo: pagó el onboarding, o alguien del equipo lo marcó a mano. */
     public function activate(Business $business, ?int $userId = null): Business
     {
-        return $this->repo->activate($business, $userId);
+        $business = $this->repo->activate($business, $userId);
+
+        if ($territoryId = $this->territoryIdOf($business)) {
+            $this->activity->record($territoryId, $userId, $business, 'business.activated', ['name' => $business->name]);
+        }
+
+        return $business;
     }
 
     public function listForTerritory(int $territoryId): Collection
@@ -108,6 +120,29 @@ class BusinessService
     public function countForTerritories(array $territoryIds): int
     {
         return $this->repo->countForTerritories($territoryIds);
+    }
+
+    /** Ids de los negocios de esos territorios. */
+    public function idsForTerritories(array $territoryIds): array
+    {
+        return $this->repo->forTerritories($territoryIds)->pluck('id')->all();
+    }
+
+    /** Cuántos negocios estaban registrados en esa fecha. */
+    public function registeredAsOf(array $territoryIds, Carbon $date): int
+    {
+        return $this->repo->forTerritories($territoryIds)
+            ->filter(fn (Business $business) => $business->created_at->lte($date))
+            ->count();
+    }
+
+    /** Cuántos de los negocios activos de hoy ya estaban activos en esa fecha. */
+    public function activeAsOf(array $territoryIds, Carbon $date): int
+    {
+        return $this->repo->forTerritories($territoryIds)
+            ->where('status', 'active')
+            ->filter(fn (Business $business) => $business->activated_at && $business->activated_at->lte($date))
+            ->count();
     }
 
     public function trendForTerritories(array $territoryIds, int $weeks = 8): array
@@ -128,37 +163,20 @@ class BusinessService
         return $this->mapRecent($this->repo->recentForTerritories($territoryIds, $limit));
     }
 
-    /** Últimos movimientos de los negocios (altas y activaciones), el más nuevo primero. */
-    public function activityForTerritories(array $territoryIds, int $limit = 5): array
+    /** Negocios del barrio que captó esa persona, listos para pintar. */
+    public function referredBy(int $userId, int $territoryId): array
     {
-        return $this->repo->forTerritories($territoryIds)
-            ->flatMap(function (Business $business) {
-                $events = [[
-                    'type'     => 'business_created',
-                    'title'    => 'Novo negócio cadastrado',
-                    'subtitle' => $business->name,
-                    'at'       => $business->created_at,
-                ]];
+        return $this->repo->referredBy($userId, $territoryId)
+            ->map(fn (Business $business) => $this->row($business))
+            ->values()
+            ->all();
+    }
 
-                if ($business->activated_at) {
-                    $events[] = [
-                        'type'     => 'business_activated',
-                        'title'    => 'Negócio aprovado',
-                        'subtitle' => $business->name,
-                        'at'       => $business->activated_at,
-                    ];
-                }
-
-                return $events;
-            })
-            ->sortByDesc('at')
-            ->take($limit)
-            ->map(fn (array $event) => [
-                'type'     => $event['type'],
-                'title'    => $event['title'],
-                'subtitle' => $event['subtitle'],
-                'time'     => $event['at']->copy()->locale('pt_BR')->diffForHumans(),
-            ])
+    /** Personas del negocio con su rol (dueño, empleados...). */
+    public function team(Business $business): array
+    {
+        return $this->repo->membersOf($business)
+            ->map(fn (User $user) => ['name' => $user->name, 'role' => $user->pivot->role])
             ->values()
             ->all();
     }
@@ -205,6 +223,20 @@ class BusinessService
             ->filter()
             ->values()
             ->all();
+    }
+
+    /** Una fila de negocio para las tablas del admin. */
+    private function row(Business $business): array
+    {
+        return [
+            'id'         => $business->id,
+            'name'       => $business->name,
+            'subtitle'   => $business->phone,
+            'category'   => BusinessSegment::tryFrom((string) $business->segment)?->label() ?? $business->segment,
+            'segment'    => $business->segment,
+            'status'     => $business->status,
+            'registered' => $business->created_at?->format('d/m/Y'),
+        ];
     }
 
     /** Slug libre: si "padaria-do-ze" existe, prueba "padaria-do-ze-2", "-3"... */
@@ -262,15 +294,7 @@ class BusinessService
 
         return [
             'rows' => $page->getCollection()
-                ->map(fn (Business $business) => [
-                    'id'       => $business->id,
-                    'name'     => $business->name,
-                    'subtitle' => $business->phone,
-                    'category' => BusinessSegment::tryFrom((string) $business->segment)?->label() ?? $business->segment,
-                    'segment'  => $business->segment,
-                    'status'   => $business->status,
-                    'registered' => $business->created_at?->format('d/m/Y'),
-                ])
+                ->map(fn (Business $business) => $this->row($business))
                 ->values()
                 ->all(),
             'page' => [
@@ -281,5 +305,11 @@ class BusinessService
                 'to'      => $page->lastItem(),
             ],
         ];
+    }
+
+    /** Cuántos negocios captó la persona en ese barrio dentro del período. */
+    public function countReferredBetween(int $userId, int $territoryId, Carbon $from, Carbon $to): int
+    {
+        return $this->repo->countReferredBetween($userId, $territoryId, $from, $to);
     }
 }

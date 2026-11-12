@@ -15,6 +15,8 @@ class RoleSeeder extends Seeder
             'state_admin',
             'city_admin',
             'district_admin',
+            'promoter',
+            'traffic_manager',
             'merchant',
             'resident',
         ];

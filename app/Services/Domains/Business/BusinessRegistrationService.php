@@ -37,7 +37,7 @@ class BusinessRegistrationService
 
         if ($territoryId === null) {
             throw ValidationException::withMessages([
-                'location' => 'VI todavía no llegó a esa dirección.',
+                'location' => 'VI ainda não chegou a esse endereço.',
             ]);
         }
 

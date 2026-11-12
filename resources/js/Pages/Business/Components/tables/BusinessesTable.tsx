@@ -28,7 +28,7 @@ interface BusinessesTableProps {
 export const formatBRL = (cents: number | null | undefined) =>
     cents == null ? '—' : (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-const STATUS: Record<BusinessStatus, { label: string; dot: string; text: string }> = {
+export const STATUS: Record<BusinessStatus, { label: string; dot: string; text: string }> = {
     active: { label: 'Ativo', dot: 'bg-green-500', text: 'text-green-700 dark:text-green-400' },
     standby: { label: 'Em análise', dot: 'bg-amber-500', text: 'text-amber-700 dark:text-amber-400' },
     inactive: { label: 'Inativo', dot: 'bg-slate-400', text: 'text-muted' },

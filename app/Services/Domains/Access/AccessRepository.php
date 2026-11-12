@@ -31,4 +31,12 @@ class AccessRepository
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
+
+    /** Nombres de los permisos que tiene un rol (vacío si el rol no existe). */
+    public function permissionNamesOf(string $roleName): array
+    {
+        $role = \Spatie\Permission\Models\Role::where('name', $roleName)->where('guard_name', 'web')->first();
+
+        return $role ? $role->permissions()->pluck('name')->all() : [];
+    }
 }

@@ -3,11 +3,11 @@ import MemberStep from "./MemberStep";
 import ReviewStep from "./ReviewStep";
 
 export const teamCreateSteps: StepItem[] = [
-    { key: "member", label: "Persona y rol", component: MemberStep },
+    { key: "member", label: "Pessoa e função", component: MemberStep as StepItem["component"] },
     {
         key: "review",
-        label: "Revisión",
+        label: "Revisão",
         component: ReviewStep,
-        finishLabel: "Agregar al equipo",
+        finishLabel: "Adicionar à equipe",
     },
 ];

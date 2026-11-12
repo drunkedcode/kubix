@@ -40,6 +40,8 @@ interface AdminLayoutProps {
     kpis?: ReactNode;
     /** Reemplaza la cabecera estándar (pantallas con banner propio). */
     hero?: ReactNode;
+    /** Última miga en pantallas de detalle (ej. "Detalhes do Negócio"); va tras el módulo activo. */
+    crumb?: string;
     children: ReactNode;
 }
 
@@ -50,6 +52,7 @@ export default function AdminLayout({
     sidebar,
     kpis,
     hero,
+    crumb,
     children,
 }: AdminLayoutProps) {
     const collapsed = useUiStore((s) => s.sidebarCollapsed);
@@ -169,7 +172,13 @@ export default function AdminLayout({
 
             <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-page">
                 <Header
-                    crumbs={trail.length > 0 ? trail.map((item) => item.label) : [title]}
+                    crumbs={
+                        crumb
+                            ? [...(parent ? [parent.label] : []), crumb]
+                            : trail.length > 0
+                              ? trail.map((item) => item.label)
+                              : [title]
+                    }
                     homeHref={homeHref}
                     notificationCount={notificationCount}
                     scope={props.cascade}

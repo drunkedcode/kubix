@@ -1,23 +1,23 @@
-import { Briefcase, Star, Store, Users } from "lucide-react";
+import { Briefcase, Eye, ShoppingCart, Star, Store, Users } from "lucide-react";
 import StatCard, { type StatCardProps } from "@/Shared/components/metrics/cards/StatCard";
 import SegmentDonut, { type DonutSegment } from "@/Shared/components/metrics/donuts/SegmentDonut";
 import PerformancePanel, { type PerformancePoint } from "../Panels/PerformancePanel";
 import TopBusinessesPanel, { type TopBusiness } from "../Panels/TopBusinessesPanel";
-import RecentActivityPanel, { type ActivityItem } from "../Panels/RecentActivityPanel";
-import ModuleStatusPanel, { type ModuleStatusItem } from "../Panels/ModuleStatusPanel";
+import OnlinePanel, { type OnlineData } from "../Panels/OnlinePanel";
+import RecentActivityPanel, { type ActivityItem } from "@/Shared/components/activity/RecentActivityPanel";
 
 import { router } from "@inertiajs/react";
 import BaseMap from "@/Shared/components/maps/BaseMap";
 import MarkersLayer, { type MapMarker } from "@/Shared/components/maps/MarkersLayer";
 import AreasLayer, { type MapArea } from "@/Shared/components/maps/AreasLayer";
 
-const ICONS = { users: Users, store: Store, briefcase: Briefcase, star: Star } as const;
+const ICONS = { users: Users, store: Store, briefcase: Briefcase, star: Star, eye: Eye, cart: ShoppingCart } as const;
 
 export interface GeneralData {
   stats: (Omit<StatCardProps, "icon"> & { icon: keyof typeof ICONS })[];
   performance: PerformancePoint[];
   top: TopBusiness[];
-  modules: ModuleStatusItem[];
+  online: OnlineData;
   activity: ActivityItem[];
   markers: MapMarker[];
   areas: MapArea[];
@@ -43,7 +43,7 @@ export default function GeneralTab({ data, territory }: GeneralTabProps) {
         <PerformancePanel points={data.performance} className="xl:col-span-2" />
         <TopBusinessesPanel items={data.top} territory={territory} />
         <RecentActivityPanel items={data.activity} className="xl:row-span-2" />
-        <ModuleStatusPanel items={data.modules} className="xl:col-span-2" />
+        <OnlinePanel data={data.online} className="xl:col-span-2" />
         <SegmentDonut segments={data.segments} />
       </div>
 

@@ -69,6 +69,15 @@ class BusinessRepository
             ->paginate($perPage);
     }
 
+    /** Negocios del barrio que captó esa persona (por su código de indicación), por nombre. */
+    public function referredBy(int $userId, int $territoryId): Collection
+    {
+        return Business::where('referred_by', $userId)
+            ->whereHas('locations', fn ($q) => $q->where('territory_id', $territoryId))
+            ->orderBy('name')
+            ->get();
+    }
+
     public function activate(Business $business, ?int $userId): Business
     {
         $business->update([
@@ -88,6 +97,12 @@ class BusinessRepository
     public function addMember(Business $business, int $userId, string $role): void
     {
         $business->members()->attach($userId, ['role' => $role]);
+    }
+
+    /** Personas del negocio (con el rol en el pivot), por nombre. */
+    public function membersOf(Business $business): Collection
+    {
+        return $business->members()->orderBy('name')->get();
     }
 
     public function hasMember(Business $business, int $userId, string $role): bool
@@ -116,5 +131,14 @@ class BusinessRepository
             ->with('locations')
             ->orderBy('name')
             ->paginate($perPage);
+    }
+
+    /** Cuántos negocios captó la persona en ese barrio dentro del período (por fecha de alta). */
+    public function countReferredBetween(int $userId, int $territoryId, \Carbon\Carbon $from, \Carbon\Carbon $to): int
+    {
+        return Business::where('referred_by', $userId)
+            ->whereHas('locations', fn ($q) => $q->where('territory_id', $territoryId))
+            ->whereBetween('created_at', [$from, $to])
+            ->count();
     }
 }

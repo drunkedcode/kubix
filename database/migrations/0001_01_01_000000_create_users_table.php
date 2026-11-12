@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('phone', 20)->nullable()->index(); // solo dígitos
             $table->string('referral_code', 12)->nullable()->unique(); // código del promotor para atribuir los negocios que capta
+            $table->string('avatar_path')->nullable(); // foto de perfil (ruta en el disco público)
             $table->rememberToken();
             $table->timestamps();
         });

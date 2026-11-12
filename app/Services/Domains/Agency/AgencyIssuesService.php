@@ -3,6 +3,7 @@
 namespace App\Services\Domains\Agency;
 
 use App\Models\Territory;
+use App\Services\Domains\Issue\IssueService;
 use Illuminate\Support\Collection;
 
 /*
@@ -15,7 +16,11 @@ use Illuminate\Support\Collection;
 
 class AgencyIssuesService
 {
-    /** Pestaña general: resumen de reclamos. */
+    public function __construct(
+        protected IssueService $issues,
+    ) {}
+
+    /** Pestaña general: resumen y los últimos reclamos. */
     public function general(Territory $territory): array
     {
         $issues = $this->all($territory);
@@ -27,6 +32,7 @@ class AgencyIssuesService
                 'resolved'    => $issues->where('status', 'resolved')->count(),
                 'oldest_days' => (int) $open->max('age_days'),
             ],
+            'recent' => $issues->take(5)->values()->all(),
         ];
     }
 
@@ -42,17 +48,8 @@ class AgencyIssuesService
         return ['resolved' => $this->all($territory)->where('status', 'resolved')->values()->all()];
     }
 
-    /** MOCK: pasa a leer de la tabla de issues cuando VI empiece a reportarlos. */
     private function all(Territory $territory): Collection
     {
-        return collect([
-            ['id' => 1, 'title' => 'El mural no carga las fotos nuevas',      'reporter' => 'Ana Souza',    'category' => 'Mural',      'status' => 'new',         'age_days' => 1],
-            ['id' => 2, 'title' => 'Negocio duplicado en el directorio',      'reporter' => 'Carlos Lima',  'category' => 'Directorio', 'status' => 'in_progress', 'age_days' => 4],
-            ['id' => 3, 'title' => 'No llega la notificación de empleos',     'reporter' => 'Marta Reis',   'category' => 'Empleos',    'status' => 'new',         'age_days' => 6],
-            ['id' => 4, 'title' => 'El splash muestra el barrio equivocado',  'reporter' => 'Pedro Alves',  'category' => 'VI',         'status' => 'resolved',    'age_days' => 9],
-            ['id' => 5, 'title' => 'Horario incorrecto en una panadería',     'reporter' => 'Julia Nunes',  'category' => 'Directorio', 'status' => 'resolved',    'age_days' => 12],
-        ]);
+        return collect($this->issues->forTerritory($territory->id));
     }
-
-    
 }

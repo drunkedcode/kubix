@@ -77,9 +77,7 @@ class TerritoryPreviewService
             'states'        => $states,
             'cities'        => $cities,
             'neighborhoods' => $neighborhoods,
-            'cards'         => $neighborhoodDetail
-                ? $this->businessStats($neighborhoodDetail['name'])
-                : $this->levelCards($countryCode, $stateCode, $cityCode, $countries, $states, $cities, $neighborhoods),
+            'cards'         => $this->levelCards($countryCode, $stateCode, $cityCode, $countries, $states, $cities, $neighborhoods),
             'focus'         => $this->focusPoint($countryCode, $stateName, $cityName),
             'markers'       => $this->repo->markers($parentId),
             'neighborhood'  => $neighborhoodDetail,
@@ -350,8 +348,8 @@ class TerritoryPreviewService
     private function levelCards(?string $country, ?string $state, ?string $city, array $countries, array $states, array $cities, array $neighborhoods): array
     {
         [$label, $items] = match (true) {
-            (bool) $city    => ['Barrios', $neighborhoods],
-            (bool) $state   => ['Ciudades', $cities],
+            (bool) $city    => ['Bairros', $neighborhoods],
+            (bool) $state   => ['Cidades', $cities],
             (bool) $country => ['Estados', $states],
             default         => ['Países', $countries],
         };
@@ -364,23 +362,6 @@ class TerritoryPreviewService
             ['label' => "{$label} detectados", 'value' => $detectados, 'tone' => 'amber'],
             ['label' => "{$label} operados", 'value' => $operados, 'tone' => 'teal'],
             ['label' => 'Cobertura', 'value' => "{$pct}%", 'tone' => 'orange'],
-        ];
-    }
-
-    /**
-     * MOCK: estadísticas de negocios, SOLO para cuando hay un barrio puntual
-     * elegido (no tiene sentido a nivel país/estado/ciudad). Se borra cuando
-     * exista la tabla de negocios real.
-     */
-    public function businessStats(string $neighborhood): array
-    {
-        $seed = crc32(mb_strtolower($neighborhood));
-        $detected = 40 + $seed % 360;
-
-        return [
-            ['label' => 'Negocios detectados', 'value' => $detected, 'tone' => 'amber'],
-            ['label' => 'Ya registrados', 'value' => (int) round($detected * (($seed % 30) / 100)), 'tone' => 'teal'],
-            ['label' => 'Área (km²)', 'value' => round(0.5 + ($seed % 90) / 10, 1), 'tone' => 'orange'],
         ];
     }
 }

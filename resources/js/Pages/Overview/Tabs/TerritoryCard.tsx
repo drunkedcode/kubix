@@ -30,9 +30,9 @@ export default function TerritoryCard({ data }: { data: TerritoryCardData }) {
         </div>
       )}
       <div className="min-w-0">
-        <h3 className="truncate text-base font-semibold text-white">{data.name}</h3>
+        <h3 className="truncate text-base font-semibold text-fg">{data.name}</h3>
         {data.location && (
-          <p className="flex items-center gap-1 truncate text-xs text-slate-400">
+          <p className="flex items-center gap-1 truncate text-xs text-muted">
             <MapPin className="h-3 w-3 shrink-0" />
             {data.location}
           </p>
@@ -52,23 +52,23 @@ export default function TerritoryCard({ data }: { data: TerritoryCardData }) {
           <div className="flex items-center gap-3">
             <Avatar name={data.manager.name} avatarUrl={null} size="lg" />
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-white">{data.manager.name}</p>
-              <p className="truncate text-xs text-slate-400">{data.manager.role}</p>
+              <p className="truncate text-sm font-medium text-fg">{data.manager.name}</p>
+              <p className="truncate text-xs text-muted">{data.manager.role}</p>
             </div>
           </div>
         ) : (
           data.type === "neighborhood" && (
-            <p className="text-sm text-slate-400">Sin gerente · lo administra Kubix</p>
+            <p className="text-sm text-muted">Sem gerente · administrado pela Kubix</p>
           )
         )}
 
         <div className="flex items-end justify-between gap-3">
           <div>
-            <p className="text-xs text-slate-400">Negocios</p>
-            <p className="text-2xl font-bold text-white">{data.businessCount}</p>
-            <p className={`text-xs ${up ? "text-emerald-400" : "text-red-400"}`}>
+            <p className="text-xs text-muted">Negócios</p>
+            <p className="text-2xl font-bold text-fg">{data.businessCount}</p>
+            <p className={`text-xs ${up ? "text-green-600 dark:text-green-400" : "text-rose-500"}`}>
               {up ? "▲ +" : "▼ "}
-              {data.delta} en 8 semanas
+              {data.delta} em 8 semanas
             </p>
           </div>
           <div className="w-28">

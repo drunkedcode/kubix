@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Agency;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Agency\UpdateAgencySettingsRequest;
+use App\Http\Requests\Agency\UpdateIssueStatusRequest;
 use App\Models\Territory;
 use App\Services\Domains\Access\AccessService;
 use App\Services\Domains\Agency\AgencyIndexService;
 use App\Services\Domains\Agency\AgencyIssuesService;
 use App\Services\Domains\Agency\AgencyService;
+use App\Services\Domains\Issue\IssueService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -20,6 +22,7 @@ class AgencyController extends Controller
         protected AgencyService $agencyService,
         protected AgencyIndexService $agencyIndex,
         protected AgencyIssuesService $agencyIssues,
+        protected IssueService $issues,
         protected AccessService $accessService,
     ) {}
 
@@ -62,6 +65,7 @@ class AgencyController extends Controller
         return Inertia::render('Agency/Issues/Index', [
             'tab'   => $tab,
             'tabs'  => $this->accessService->allowedTabs($request->user(), 'agency', 'issues'),
+            'canManage' => $request->user()->can('manage-issues'),
             'scope' => ['value' => $territory->slug, 'label' => $territory->name],
             ...match ($tab) {
                 'general'  => $this->agencyIssues->general($territory),
@@ -69,6 +73,21 @@ class AgencyController extends Controller
                 'resolved' => $this->agencyIssues->resolved($territory),
             },
         ]);
+    }
+
+    /** Pasa un reclamo del barrio a "em andamento" o "resolvido". El barrio sale de la URL. */
+    public function updateIssue(UpdateIssueStatusRequest $request, string $territory, int $issue): RedirectResponse
+    {
+        /** @var Territory $current */
+        $current = app('currentTerritory');
+
+        abort_unless($current->type === 'neighborhood', 404);
+
+        $status = $request->validated('status');
+
+        $this->issues->changeStatus($request->user(), $current, $issue, $status);
+
+        return back()->with('success', $status === 'resolved' ? 'Reclamação resolvida.' : 'Reclamação em andamento.');
     }
 
     /** Guarda la configuración económica del barrio. El territorio sale de la URL, nunca del formulario. */
@@ -81,6 +100,6 @@ class AgencyController extends Controller
 
         $this->agencyService->updateSettings($territory, $request->validated());
 
-        return back()->with('success', 'Configuración guardada.');
+        return back()->with('success', 'Configurações salvas.');
     }
 }

@@ -56,8 +56,8 @@ const areaKm2 = (g: GeoJSON.Polygon | GeoJSON.MultiPolygon | null) => {
 function Row({ label, value }: { label: string; value: string }) {
     return (
         <div className="flex items-baseline justify-between gap-3 text-xs">
-            <span className="text-slate-400">{label}</span>
-            <span className="truncate text-right font-medium text-white">{value || '—'}</span>
+            <span className="text-muted">{label}</span>
+            <span className="truncate text-right font-medium text-fg">{value || '—'}</span>
         </div>
     );
 }
@@ -121,17 +121,17 @@ export default function TerritoryDetailCard({
     const vertices = vertexCount(polygon);
     const area = areaKm2(polygon);
     const badge = operated
-        ? { text: 'Operado', cls: 'bg-teal-500/10 text-teal-300 border-teal-500/20' }
+        ? { text: 'Operado', cls: 'bg-brand-soft text-brand-text border-brand/20' }
         : polygon
-          ? { text: 'Disponible', cls: 'bg-sky-500/10 text-sky-300 border-sky-500/20' }
-          : { text: 'Sin límite', cls: 'bg-amber-500/10 text-amber-300 border-amber-500/20' };
+          ? { text: 'Disponible', cls: 'bg-surface-2 text-muted border-line' }
+          : { text: 'Sem limite', cls: 'bg-amber-500/10 text-amber-600 border-amber-500/20' };
 
     return (
         <div
             ref={cardRef}
             style={{ left: pos?.x ?? INITIAL_OFFSET.x, top: pos?.y ?? 0, visibility: pos ? 'visible' : 'hidden' }}
-            className={`absolute z-[1000] w-80 max-w-[calc(100%-16px)] select-none rounded-2xl border border-navy-700 bg-navy-900/95 shadow-2xl backdrop-blur-md ${
-                dragging ? 'ring-2 ring-teal-500/30' : ''
+            className={`absolute z-[1000] w-80 max-w-[calc(100%-16px)] select-none rounded-2xl border border-line bg-surface/95 shadow-2xl backdrop-blur-md ${
+                dragging ? 'ring-2 ring-brand/30' : ''
             }`}
         >
             {/* Header (asa para arrastrar) */}
@@ -139,13 +139,13 @@ export default function TerritoryDetailCard({
                 onPointerDown={onDown}
                 onPointerMove={onMove}
                 onPointerUp={onUp}
-                className={`flex touch-none items-center gap-2 border-b border-navy-800 px-3 py-2.5 ${
+                className={`flex touch-none items-center gap-2 border-b border-line px-3 py-2.5 ${
                     dragging ? 'cursor-grabbing' : 'cursor-grab'
                 }`}
             >
-                <GripHorizontal className="h-4 w-4 shrink-0 text-slate-500" />
+                <GripHorizontal className="h-4 w-4 shrink-0 text-muted" />
                 <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-white">{name}</p>
+                    <p className="truncate text-sm font-semibold text-fg">{name}</p>
                 </div>
                 <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium ${badge.cls}`}>
                     {badge.text}
@@ -154,8 +154,8 @@ export default function TerritoryDetailCard({
                     type="button"
                     onPointerDown={(e) => e.stopPropagation()}
                     onClick={() => setCollapsed((v) => !v)}
-                    aria-label={collapsed ? 'Expandir' : 'Colapsar'}
-                    className="cursor-pointer rounded-lg p-1 text-slate-400 hover:bg-navy-800 hover:text-white"
+                    aria-label={collapsed ? 'Expandir' : 'Recolher'}
+                    className="cursor-pointer rounded-lg p-1 text-muted hover:bg-surface-2 hover:text-fg"
                 >
                     {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
                 </button>
@@ -163,8 +163,8 @@ export default function TerritoryDetailCard({
                     type="button"
                     onPointerDown={(e) => e.stopPropagation()}
                     onClick={onClose}
-                    aria-label="Cerrar"
-                    className="cursor-pointer rounded-lg p-1 text-slate-400 hover:bg-navy-800 hover:text-white"
+                    aria-label="Fechar"
+                    className="cursor-pointer rounded-lg p-1 text-muted hover:bg-surface-2 hover:text-fg"
                 >
                     <X className="h-4 w-4" />
                 </button>
@@ -177,23 +177,23 @@ export default function TerritoryDetailCard({
                         <div className="space-y-1.5">
                             <Row label="País" value={hierarchy.country ?? ''} />
                             <Row label="Estado" value={hierarchy.state ?? ''} />
-                            <Row label="Ciudad" value={hierarchy.city ?? ''} />
-                            <Row label="Barrio" value={name} />
+                            <Row label="Cidade" value={hierarchy.city ?? ''} />
+                            <Row label="Bairro" value={name} />
                         </div>
 
-                        <div className="space-y-1.5 border-t border-navy-800 pt-3">
-                            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-teal-400">
-                                <MapPin className="h-3.5 w-3.5" /> Límite
+                        <div className="space-y-1.5 border-t border-line pt-3">
+                            <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-brand-text">
+                                <MapPin className="h-3.5 w-3.5" /> Limite
                             </div>
                             <Row label="Centroide" value={lat != null && lng != null ? `${lat.toFixed(5)}, ${lng.toFixed(5)}` : ''} />
-                            <Row label="Geometría" value={polygon?.type ?? 'Sin límite'} />
+                            <Row label="Geometria" value={polygon?.type ?? 'Sem limite'} />
                             <Row label="Vértices" value={polygon ? String(vertices) : ''} />
                             <Row label="Área aprox." value={polygon ? `${area.toFixed(2)} km²` : ''} />
                             {polygon && (
                                 <button
                                     type="button"
                                     onClick={copyGeoJson}
-                                    className="mt-1 inline-flex cursor-pointer items-center gap-1.5 text-[11px] text-slate-400 hover:text-teal-300"
+                                    className="mt-1 inline-flex cursor-pointer items-center gap-1.5 text-[11px] text-muted hover:text-brand-text"
                                 >
                                     {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                                     {copied ? 'Copiado' : 'Copiar GeoJSON'}
@@ -203,24 +203,24 @@ export default function TerritoryDetailCard({
                     </div>
 
                     {/* Footer */}
-                    <div className="space-y-2 border-t border-navy-800 px-3 py-3">
+                    <div className="space-y-2 border-t border-line px-3 py-3">
                         {!canSubmit && disabledReason && (
-                            <p className="text-[11px] text-amber-300">{disabledReason}</p>
+                            <p className="text-[11px] text-amber-600">{disabledReason}</p>
                         )}
                         <div className="flex items-center gap-2">
                             <button
                                 type="button"
                                 disabled={!canSubmit}
                                 onClick={onSubmit}
-                                className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-teal-500 px-4 py-2.5 text-xs font-bold text-navy-950 transition-colors hover:bg-teal-400 disabled:cursor-not-allowed disabled:opacity-50"
+                                className="inline-flex flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-xs font-bold text-brand-fg transition-colors hover:bg-brand-hover disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 <Save className="h-4 w-4" />
-                                {operated ? 'Guardar límite' : 'Dar de alta'}
+                                {operated ? 'Salvar limite' : 'Cadastrar'}
                             </button>
                             <button
                                 type="button"
                                 onClick={onClose}
-                                className="cursor-pointer rounded-xl border border-navy-700 bg-navy-800 px-3 py-2.5 text-xs text-slate-300 transition-colors hover:bg-navy-700 hover:text-white"
+                                className="cursor-pointer rounded-xl border border-line bg-surface-2 px-3 py-2.5 text-xs text-muted transition-colors hover:text-fg"
                             >
                                 Cancelar
                             </button>

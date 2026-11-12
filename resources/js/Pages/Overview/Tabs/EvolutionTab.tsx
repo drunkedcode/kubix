@@ -1,5 +1,10 @@
-import TrendLine, { type TrendPoint } from "@/Shared/components/metrics/charts/TrendLine";
+import { BarChart3, Store, TrendingUp } from "lucide-react";
+import Card from "@/Shared/components/card/Card";
+import CardTitle from "@/Shared/components/card/CardTitle";
+import MultiLineChart, { type ChartLine } from "@/Shared/components/metrics/charts/MultiLineChart";
 import RankingBars, { type TerritorySummary } from "@/Shared/components/metrics/charts/RankingBars";
+
+export type TrendPoint = { label: string; count: number };
 
 export interface TrendSummary {
   total: number;
@@ -19,54 +24,61 @@ export interface EvolutionData {
   recent?: RecentBusiness[];
 }
 
-interface EvolutionTabProps {
-  data: EvolutionData;
-}
+const LINES: ChartLine[] = [{ key: "count", name: "Negócios cadastrados", color: "#f59e0b" }];
 
-export default function EvolutionTab({ data }: EvolutionTabProps) {
+/**
+ * EvolutionTab.tsx (Overview)
+ * Qué es:  crecimiento acumulado de negocios del alcance, su reparto por territorio y las últimas altas.
+ */
+export default function EvolutionTab({ data }: { data: EvolutionData }) {
   const delta = data.summary?.delta ?? 0;
-  const deltaColor = delta > 0 ? "text-teal-400" : delta < 0 ? "text-rose-400" : "text-navy-500";
+  const deltaColor = delta > 0 ? "text-green-600 dark:text-green-400" : delta < 0 ? "text-rose-500" : "text-muted";
   const deltaSign = delta > 0 ? "+" : "";
+  const hasRanking = !!data.ranking && data.ranking.length > 0;
+  const hasRecent = !!data.recent && data.recent.length > 0;
 
   return (
-    <div className="space-y-4 p-2 sm:p-6">
-      <div className="rounded-xl border border-navy-800 bg-navy-900 p-4">
-        <h3 className="mb-1 text-sm font-medium text-navy-200">Negocios registrados (acumulado)</h3>
-
+    <div className="space-y-4">
+      <Card header={<CardTitle icon={TrendingUp} title="Evolução de Negócios" />}>
         {data.summary && (
           <div className="mb-4 flex items-baseline gap-2">
-            <span className="text-2xl font-semibold text-white">{data.summary.total}</span>
-            <span className={`text-xs font-medium ${deltaColor}`}>
-              {deltaSign}{delta} en las últimas {data.trend.length} semanas
+            <span className="text-3xl font-bold text-fg">{data.summary.total}</span>
+            <span className={`text-sm font-medium ${deltaColor}`}>
+              {deltaSign}
+              {delta} nas últimas {data.trend.length} semanas
             </span>
           </div>
         )}
 
-        <TrendLine points={data.trend} />
-      </div>
+        <MultiLineChart points={data.trend} lines={LINES} xKey="label" />
+      </Card>
 
-      {data.ranking && data.ranking.length > 0 && (
-        <div className="rounded-xl border border-navy-800 bg-navy-900 p-4">
-          <h3 className="mb-1 text-sm font-medium text-navy-200">Negocios por territorio</h3>
-          <p className="mb-4 text-xs text-navy-500">
-            {data.ranking.length} {data.ranking.length === 1 ? "territorio" : "territorios"}
-          </p>
-          <RankingBars territories={data.ranking} />
-        </div>
-      )}
+      {(hasRanking || hasRecent) && (
+        <div className="grid gap-4 xl:grid-cols-2">
+          {hasRanking && (
+            <Card header={<CardTitle icon={BarChart3} title="Negócios por Território" />}>
+              <p className="mb-4 text-xs text-muted">
+                {data.ranking!.length} {data.ranking!.length === 1 ? "território" : "territórios"}
+              </p>
+              <RankingBars territories={data.ranking!} />
+            </Card>
+          )}
 
-      {data.recent && data.recent.length > 0 && (
-        <div className="rounded-xl border border-navy-800 bg-navy-900 p-4">
-          <h3 className="mb-1 text-sm font-medium text-navy-200">Negocios recientes</h3>
-          <p className="mb-4 text-xs text-navy-500">Últimas altas</p>
-          <ul className="space-y-2">
-            {data.recent.map((b) => (
-              <li key={b.id} className="flex items-center justify-between text-xs">
-                <span className="text-navy-200">{b.name}</span>
-                <span className="text-navy-500">{b.date}</span>
-              </li>
-            ))}
-          </ul>
+          {hasRecent && (
+            <Card header={<CardTitle icon={Store} title="Negócios Recentes" />}>
+              <ul className="divide-y divide-line">
+                {data.recent!.map((business) => (
+                  <li key={business.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-soft text-sm font-bold text-brand-text">
+                      {business.name.charAt(0).toUpperCase()}
+                    </span>
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-fg">{business.name}</span>
+                    <span className="shrink-0 text-xs text-muted">{business.date}</span>
+                  </li>
+                ))}
+              </ul>
+            </Card>
+          )}
         </div>
       )}
     </div>

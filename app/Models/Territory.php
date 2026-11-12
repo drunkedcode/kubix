@@ -46,9 +46,4 @@ class Territory extends Model
     {
         return $this->hasMany(Territory::class, 'parent_id');
     }
-
-    public function scopeDescendants($query)
-    {
-        return $query->where('path', 'like', $this->path . '/%');
-    }
 }

@@ -25,6 +25,10 @@ class PaymentService
         'promotion'  => 'promotion_price',
     ];
 
+    private const KIND_LABELS   = ['onboarding' => 'Adesão', 'daily' => 'Diária', 'promotion' => 'Promoção'];
+    private const METHOD_LABELS = ['pix' => 'Pix', 'card' => 'Cartão', 'boleto' => 'Boleto', 'cash' => 'Dinheiro'];
+    private const STATUS_LABELS = ['pending' => 'Pendente', 'paid' => 'Pago', 'failed' => 'Falhou'];
+
     public function __construct(
         protected PaymentRepository $repo,
         protected BusinessService $businesses,
@@ -60,7 +64,7 @@ class PaymentService
 
         if ($price === null) {
             throw ValidationException::withMessages([
-                'price' => 'El barrio todavía no definió este precio.',
+                'price' => 'O bairro ainda não definiu este preço.',
             ]);
         }
 
@@ -76,7 +80,7 @@ class PaymentService
     {
         if ($kind === 'onboarding' && $business->status === 'active') {
             throw ValidationException::withMessages([
-                'business' => 'Este negocio ya está activo.',
+                'business' => 'Este negócio já está ativo.',
             ]);
         }
 
@@ -101,5 +105,33 @@ class PaymentService
 
             return $payment;
         });
+    }
+
+    /**
+     * Financeiro del negocio: lo cobrado (solo pagos confirmados) por concepto, la fecha del
+     * último pago y el historial completo. Los montos salen en reales.
+     */
+    public function historyFor(int $businessId): array
+    {
+        $payments = $this->repo->forBusiness($businessId);
+        $paid     = $payments->where('status', 'paid');
+        $total    = fn (?string $kind) => ($kind ? $paid->where('kind', $kind) : $paid)->sum('amount') / 100;
+
+        return [
+            'totals' => [
+                'total'      => $total(null),
+                'onboarding' => $total('onboarding'),
+                'daily'      => $total('daily'),
+                'promotion'  => $total('promotion'),
+            ],
+            'lastPaymentDate' => $paid->sortByDesc('paid_at')->first()?->paid_at?->format('d/m/Y'),
+            'transactions'    => $payments->map(fn (Payment $payment) => [
+                'id'      => $payment->id,
+                'concept' => (self::KIND_LABELS[$payment->kind] ?? $payment->kind) . ' · ' . (self::METHOD_LABELS[$payment->method] ?? $payment->method),
+                'amount'  => $payment->amount / 100,
+                'status'  => self::STATUS_LABELS[$payment->status] ?? $payment->status,
+                'date'    => ($payment->paid_at ?? $payment->created_at)->format('d/m/Y'),
+            ])->values()->all(),
+        ];
     }
 }

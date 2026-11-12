@@ -48,9 +48,9 @@ export default function SettingsTab({ data, territory }: { data: SettingsData; t
   return (
     <form onSubmit={submit} className="flex flex-col gap-4 pb-6">
       <div className="rounded-xl border border-line bg-surface p-4">
-        <p className="text-sm font-semibold text-fg">Precios del barrio</p>
+        <p className="text-sm font-semibold text-fg">Preços do bairro</p>
         <p className="mt-1 text-xs text-muted">
-          Lo que paga cada negocio de este barrio. Los precios por tamaño de negocio llegarán más adelante.
+          O que cada negócio deste bairro paga. Os preços por porte do negócio chegarão mais adiante.
         </p>
 
         <div className="mt-4 grid gap-4 sm:grid-cols-3">
@@ -62,27 +62,27 @@ export default function SettingsTab({ data, territory }: { data: SettingsData; t
               placeholder="0,00"
               error={errors.onboarding_price}
             />
-            <p className="mt-1 text-xs text-muted">Se cobra una vez, cuando el negocio entra al barrio.</p>
+            <p className="mt-1 text-xs text-muted">Cobrado uma vez, quando o negócio entra no bairro.</p>
           </div>
           <div>
             <TextField
-              label="Diaria (R$)"
+              label="Diária (R$)"
               value={form.daily_price}
               onChange={(v) => setData("daily_price", onlyMoney(v))}
               placeholder="0,00"
               error={errors.daily_price}
             />
-            <p className="mt-1 text-xs text-muted">Precio por día del mural.</p>
+            <p className="mt-1 text-xs text-muted">Preço por dia do mural.</p>
           </div>
           <div>
             <TextField
-              label="Promoción (R$)"
+              label="Promoção (R$)"
               value={form.promotion_price}
               onChange={(v) => setData("promotion_price", onlyMoney(v))}
               placeholder="0,00"
               error={errors.promotion_price}
             />
-            <p className="mt-1 text-xs text-muted">Se cobra cada vez que un negocio publica una promoción.</p>
+            <p className="mt-1 text-xs text-muted">Cobrado a cada promoção publicada por um negócio.</p>
           </div>
         </div>
       </div>
@@ -93,7 +93,7 @@ export default function SettingsTab({ data, territory }: { data: SettingsData; t
           disabled={processing}
           className="rounded-lg bg-brand px-5 py-2.5 text-sm font-semibold text-brand-fg transition hover:bg-brand-hover disabled:opacity-50"
         >
-          {processing ? "Guardando…" : "Guardar cambios"}
+          {processing ? "Salvando…" : "Salvar alterações"}
         </button>
       </div>
     </form>

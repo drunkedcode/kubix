@@ -110,6 +110,18 @@ return [
                 'contexts' => ['overview', 'agency'],
                 'tabs' => [
                     'members' => 'view-team',
+                    'roles'   => 'view-team',
+                    'productivity' => 'view-team',
+                    'goals'   => 'view-team',
+                ],
+            ],
+
+            // Detalle de una persona del equipo (Team/Show).
+            'show' => [
+                'tabs' => [
+                    'businesses' => 'view-team',
+                    'activities' => 'view-team',
+                    'history'    => 'view-team',
                 ],
             ],
         ],
@@ -157,8 +169,8 @@ return [
     |                  (country|state|city|neighborhood). Estos son roles de Spatie
     |                  y su nombre debe coincidir con RoleSeeder.
     |   levels      -> en qué tipos de territorio se puede asignar un rol de equipo
-    |                  (los que no son de gerente). Hoy solo se guardan como membresía;
-    |                  se vuelven roles de Spatie cuando tengan permisos propios.
+    |                  (los que no son de gerente). Todos son roles de Spatie: sus permisos
+    |                  salen de 'defaults'.
 |   referral    -> si es true, quien recibe este rol obtiene un código de promotor
 |                  para atribuirle los negocios que capta (users.referral_code).
     |
@@ -172,21 +184,21 @@ return [
     'team_roles' => [
 
         // Gerentes (uno por tipo de territorio).
-        'country_admin'  => ['label' => 'Gerente de país',   'manager_of' => 'country'],
-        'state_admin'    => ['label' => 'Gerente de estado', 'manager_of' => 'state'],
-        'city_admin'     => ['label' => 'Gerente de ciudad', 'manager_of' => 'city'],
-        'district_admin' => ['label' => 'Gerente de barrio', 'manager_of' => 'neighborhood'],
+        'country_admin'  => ['label' => 'Gerente de País',   'manager_of' => 'country'],
+        'state_admin'    => ['label' => 'Gerente de Estado', 'manager_of' => 'state'],
+        'city_admin'     => ['label' => 'Gerente de Cidade', 'manager_of' => 'city'],
+        'district_admin' => ['label' => 'Gerente de Bairro', 'manager_of' => 'neighborhood'],
 
         // Equipo del barrio.
         'promoter' => [
             'label'       => 'Promotor',
-            'description' => 'Capta negocios para el barrio.',
+            'description' => 'Capta negócios para o bairro.',
             'levels'      => ['neighborhood'],
             'referral'    => true,
         ],
         'traffic_manager' => [
-            'label'       => 'Gestor de tráfico',
-            'description' => 'Gestiona las campañas de tráfico pago del barrio.',
+            'label'       => 'Gestor de tráfego',
+            'description' => 'Gerencia as campanhas de tráfego pago do bairro.',
             'levels'      => ['neighborhood'],
         ],
     ],
@@ -205,6 +217,10 @@ return [
 
         // Super admin: todo el catálogo.
         'super_admin'    => '*',
+
+        // Gestor de tráfego: entra a los negócios del bairro y gerencia sus campañas.
+        // El promotor no tiene permisos en el admin: trabaja desde la PWA con su código.
+        'traffic_manager' => ['view-dashboard', 'view-business-list', 'view-business-profile', 'view-business-traffic', 'view-business-ads', 'manage-advertising'],
 
         // Gerentes de país, estado y ciudad: supervisan y arman su equipo.
         'country_admin'  => ['view-dashboard', 'view-evolution-tab', 'view-business-list', 'view-business-profile', 'view-team', 'manage-team', 'view-issues'],

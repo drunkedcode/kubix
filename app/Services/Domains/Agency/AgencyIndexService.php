@@ -3,8 +3,10 @@
 namespace App\Services\Domains\Agency;
 
 use App\Models\Territory;
+use App\Services\Domains\Activity\ActivityService;
 use App\Services\Domains\Business\BusinessService;
 use App\Services\Domains\Metrics\MetricsService;
+use App\Services\Domains\Presence\PresenceService;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,9 +20,11 @@ use App\Services\Domains\Metrics\MetricsService;
 class AgencyIndexService
 {
     public function __construct(
+        protected ActivityService $activity,
         protected AgencyService $agency,
         protected BusinessService $businesses,
         protected MetricsService $metrics,
+        protected PresenceService $presence,
     ) {}
 
     /** Pestaña general: tarjetas, mapa y segmentos del barrio. */
@@ -38,8 +42,8 @@ class AgencyIndexService
                 'segments' => $this->metrics->segments($ids),
                 'performance' => $this->metrics->performance($ids),
                 'top'      => $this->metrics->topBusinesses($ids),
-                'modules'  => $this->metrics->moduleStatus($ids),
-                'activity' => $this->businesses->activityForTerritories($ids),
+                'activity' => $this->activity->recent($ids),
+                'online'   => $this->presence->online($territory),
             ],
         ];
     }

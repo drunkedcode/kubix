@@ -34,7 +34,7 @@ class UpdateBoundaryRequest extends FormRequest
             : ($polygon['coordinates'][0] ?? []);
 
         if (count($ring) < 4 || $ring[0] !== end($ring)) {
-            $validator->errors()->add('polygon', 'El límite debe ser un anillo cerrado de al menos 4 puntos.');
+            $validator->errors()->add('polygon', 'O limite deve ser um anel fechado de pelo menos 4 pontos.');
         }
     }
 }

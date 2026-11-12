@@ -25,7 +25,7 @@ export default function Create({ roles = [] }: CreateProps) {
         setServerError(null);
 
         router.post(route("team.store", { territory: territory.slug }), toPayload(data), {
-            onError: (errors) => setServerError(Object.values(errors)[0] ?? "No se pudo agregar."),
+            onError: (errors) => setServerError(Object.values(errors)[0] ?? "Não foi possível adicionar."),
         });
     };
 
@@ -34,13 +34,13 @@ export default function Create({ roles = [] }: CreateProps) {
 
     return (
         <AdminLayout
-            title="Panel de Administración"
-            subtitle={`Nuevo miembro del equipo · ${territory.name}`}
+            title="Novo Membro"
+            subtitle={`Novo membro da equipe · ${territory.name}`}
         >
-            <Head title="Nuevo miembro" />
+            <Head title="Novo Membro" />
             <div className="w-full max-w-7xl mx-auto px-4 space-y-6">
                 {serverError && (
-                    <div className="mx-auto max-w-lg rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
+                    <div className="mx-auto max-w-lg rounded-lg border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-600 dark:text-rose-300">
                         {serverError}
                     </div>
                 )}

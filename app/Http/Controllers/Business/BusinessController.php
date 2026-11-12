@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Business;
 
-use App\Enums\BusinessSegment;
 use App\Http\Controllers\Controller;
 use App\Models\Territory;
 use App\Services\Domains\Access\AccessService;
@@ -52,36 +51,6 @@ class BusinessController extends Controller
         ]);
     }
 
-    public function create(): Response
-    {
-        /** @var Territory $territory */
-        $territory = app('currentTerritory');
-
-        return Inertia::render('Business/Create', [
-            'segments'      => BusinessSegment::options(),
-            'territorySlug' => $territory->slug,
-        ]);
-    }
-
-    public function store(Request $request): RedirectResponse
-    {
-        $data = $request->validate([
-            'name'                  => 'required|string|max:255',
-            'location.latitude'     => 'nullable|numeric',
-            'location.longitude'    => 'nullable|numeric',
-            'location.street'       => 'nullable|string',
-            'location.number'       => 'nullable|string',
-            'location.neighborhood' => 'nullable|string',
-            'location.city'         => 'nullable|string',
-            'location.state'        => 'nullable|string',
-            'location.cep'          => 'nullable|string',
-        ]);
-
-        $result = $this->businessService->register($data, $request->user()?->id);
-
-        return back()->with('success', "Negocio \"{$result['business']->name}\" dado de alta.");
-    }
-
     /** Aprovações: el equipo registra el pago en efectivo del onboarding y el negocio queda activo. */
     public function activate(Request $request, string $territory, string $business): RedirectResponse
     {
@@ -108,14 +77,16 @@ class BusinessController extends Controller
 
         // Only the active tab's data is loaded.
         $tabData = match ($activeTab) {
-            'profile' => [], // the profile is the base `business` prop
+            'profile' => ['overview' => $this->showService->overview($negocio)],
             'finance' => ['financeData' => $this->showService->finance($negocio)],
-            'traffic' => [], // later: ['trafficData' => $this->showService->traffic($negocio)]
+            'traffic' => ['trafficData' => $this->showService->traffic($negocio)],
             'ads'     => ['adsData' => $this->showService->ads($negocio)],
         };
 
         return Inertia::render('Business/Show', [
             'business'      => $this->showService->profile($negocio),
+            'kpis'          => $this->showService->kpis($negocio),
+            'territoryName' => app('currentTerritory')->name,
             'territorySlug' => $territory,
             'activeTab'     => $activeTab,
             'tabs'          => $this->accessService->allowedTabs($user, 'business', 'show'),

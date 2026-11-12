@@ -31,7 +31,7 @@ export default function UserLookup({ lookupUrl, value, onChange, error }: UserLo
     const term = email.trim().toLowerCase();
 
     if (!/^\S+@\S+\.\S+$/.test(term)) {
-      setMessage("Ingresá un correo válido");
+      setMessage("Informe um e-mail válido");
       return;
     }
 
@@ -45,24 +45,24 @@ export default function UserLookup({ lookupUrl, value, onChange, error }: UserLo
       });
 
       if (res.status === 429) {
-        setMessage("Demasiados intentos. Esperá un momento.");
+        setMessage("Muitas tentativas. Aguarde um momento.");
         return;
       }
       if (!res.ok) {
-        setMessage("No se pudo buscar. Probá de nuevo.");
+        setMessage("Não foi possível buscar. Tente novamente.");
         return;
       }
 
       const body = (await res.json()) as { user: LookupUser | null };
 
       if (!body.user) {
-        setMessage("No existe un usuario con ese correo. Primero debe registrarse en la plataforma.");
+        setMessage("Não existe usuário com esse e-mail. Ele precisa se cadastrar na plataforma primeiro.");
         return;
       }
 
       onChange(body.user);
     } catch {
-      setMessage("No se pudo buscar. Probá de nuevo.");
+      setMessage("Não foi possível buscar. Tente novamente.");
     } finally {
       setSearching(false);
     }
@@ -76,20 +76,20 @@ export default function UserLookup({ lookupUrl, value, onChange, error }: UserLo
 
   if (value) {
     return (
-      <div className="flex items-center justify-between gap-3 rounded-lg border border-teal-500/40 bg-teal-500/5 p-3">
+      <div className="flex items-center justify-between gap-3 rounded-lg border border-brand bg-brand-soft p-3">
         <div className="flex items-center gap-3">
-          <UserCheck className="h-5 w-5 shrink-0 text-teal-400" />
+          <UserCheck className="h-5 w-5 shrink-0 text-brand-text" />
           <div>
-            <p className="text-sm font-semibold text-slate-100">{value.name}</p>
-            <p className="text-xs text-slate-400">{value.email}</p>
+            <p className="text-sm font-semibold text-fg">{value.name}</p>
+            <p className="text-xs text-muted">{value.email}</p>
           </div>
         </div>
         <button
           type="button"
           onClick={reset}
-          className="text-xs font-medium text-slate-300 hover:text-teal-300"
+          className="text-xs font-medium text-muted hover:text-brand-text"
         >
-          Cambiar
+          Trocar
         </button>
       </div>
     );
@@ -106,7 +106,7 @@ export default function UserLookup({ lookupUrl, value, onChange, error }: UserLo
         }}
       >
         <TextField
-          label="Correo del usuario"
+          label="E-mail do usuário"
           value={email}
           onChange={(v: string) => setEmail(v)}
           placeholder="persona@correo.com"
@@ -117,10 +117,10 @@ export default function UserLookup({ lookupUrl, value, onChange, error }: UserLo
         type="button"
         onClick={search}
         disabled={searching}
-        className="flex items-center justify-center gap-2 rounded-lg border border-navy-700 px-4 py-2 text-sm font-medium text-slate-200 transition-colors hover:bg-navy-800 disabled:opacity-60"
+        className="flex items-center justify-center gap-2 rounded-lg border border-line px-4 py-2 text-sm font-medium text-fg transition-colors hover:bg-surface-2 disabled:opacity-60"
       >
         <Search className="h-4 w-4" />
-        {searching ? "Buscando..." : "Buscar usuario"}
+        {searching ? "Buscando..." : "Buscar usuário"}
       </button>
     </div>
   );

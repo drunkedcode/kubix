@@ -1,11 +1,11 @@
 import { Head, router, usePage } from "@inertiajs/react";
+import { LayoutDashboard, LayoutGrid, TrendingUp } from "lucide-react";
 import AdminLayout from "@/Layouts/AdminLayout";
 import { OVERVIEW_LABEL, type TerritoryType } from "@/Layouts/partials/sidebarItems";
-import { LayoutDashboard, LayoutGrid, TrendingUp } from "lucide-react";
+import Tabs, { type TabItem } from "@/Shared/ui/Tabs";
 import GeneralTab, { type GeneralData } from "./Tabs/GeneralTab";
 import EvolutionTab, { type EvolutionData } from "./Tabs/EvolutionTab";
 import TerritoriesTab, { type TerritoriesData } from "./Tabs/TerritoriesTab";
-import Tabs, { type TabItem } from "@/Shared/ui/Tabs";
 
 type TabKey = "territories" | "general" | "evolution";
 
@@ -27,15 +27,15 @@ interface SharedProps {
 // Las tarjetas son los hijos del alcance: la etiqueta de su pestaña sigue el nivel.
 const CHILDREN_LABEL: Record<TerritoryType, string> = {
   country: "Estados",
-  state: "Ciudades",
-  city: "Barrios",
-  neighborhood: "Agencias",
+  state: "Cidades",
+  city: "Bairros",
+  neighborhood: "Agências",
 };
 
 const allTabs = (territoriesLabel: string): TabItem<TabKey>[] => [
   { key: "territories", label: territoriesLabel, icon: LayoutGrid },
-  { key: "general", label: "General", icon: LayoutDashboard },
-  { key: "evolution", label: "Evolución", icon: TrendingUp },
+  { key: "general", label: "Geral", icon: LayoutDashboard },
+  { key: "evolution", label: "Evolução", icon: TrendingUp },
 ];
 
 const CONTENT: Record<TabKey, (p: IndexProps) => React.ReactNode> = {
@@ -49,14 +49,15 @@ export default function Index(props: IndexProps) {
   const { props: shared } = usePage<SharedProps>();
 
   const territoriesLabel =
-    territorySlug && shared.territory ? CHILDREN_LABEL[shared.territory.type] : "Mis agencias";
+    territorySlug && shared.territory ? CHILDREN_LABEL[shared.territory.type] : "Minhas Agências";
   const visibleTabs = allTabs(territoriesLabel).filter((t) => props.tabs.includes(t.key));
 
   // Con un territorio puntual el título sigue su nivel (País, Estado, Ciudad).
-  const title = territorySlug && shared.territory ? OVERVIEW_LABEL[shared.territory.type] : "Mis Agencias";
-  const subtitle = territorySlug && shared.territory
-    ? `Totales de ${shared.territory.name}`
-    : "Resumen agregado de todos tus territorios";
+  const title = territorySlug && shared.territory ? OVERVIEW_LABEL[shared.territory.type] : "Minhas Agências";
+  const subtitle =
+    territorySlug && shared.territory
+      ? `Totais de ${shared.territory.name}`
+      : "Resumo agregado de todos os seus territórios";
 
   const changeTab = (tab: TabKey) =>
     router.get(
@@ -69,7 +70,7 @@ export default function Index(props: IndexProps) {
     <AdminLayout title={title} subtitle={subtitle}>
       <Head title={title} />
 
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-5">
         <Tabs tabs={visibleTabs} active={props.tab} onChange={changeTab} />
         <div>{CONTENT[props.tab](props)}</div>
       </div>

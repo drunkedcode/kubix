@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\Domains\Presence\PresenceService;
 use App\Services\Domains\User\UserContextService;
 use Closure;
 use Illuminate\Http\Request;
@@ -20,6 +21,7 @@ class ResolveUserTerritory
 {
     public function __construct(
         protected UserContextService $contexts,
+        protected PresenceService $presence,
     ) {}
 
     public function handle(Request $request, Closure $next): Response
@@ -28,12 +30,13 @@ class ResolveUserTerritory
 
         if (! $territory) {
             return response()->json([
-                'message' => 'Enviá tu ubicación para ver lo de tu barrio.',
+                'message' => 'Envie sua localização para ver o seu bairro.',
                 'code'    => 'location_required',
             ], 409);
         }
 
         app()->instance('currentTerritory', $territory);
+        $this->presence->touch($territory, $request->user()->id, PresenceService::APP);
 
         return $next($request);
     }

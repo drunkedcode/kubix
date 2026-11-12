@@ -167,4 +167,35 @@ class AccessService
     {
         return array_keys(config("access.modules.{$module}.{$page}.tabs", []));
     }
+
+    /**
+     * Cada permiso del catálogo con el lugar donde vive: ['name', 'module', 'page', 'tab', 'kind' => tab|action].
+     * Si un permiso se usa en varias pestañas, queda el primero declarado.
+     */
+    public function permissionMap(): array
+    {
+        $rows = [];
+
+        foreach (config('access.modules', []) as $module => $pages) {
+            foreach ($pages as $page => $definition) {
+                foreach ($definition['tabs'] ?? [] as $tab => $permission) {
+                    $rows[$permission] ??= ['name' => $permission, 'module' => $module, 'page' => $page, 'tab' => $tab, 'kind' => 'tab'];
+                }
+            }
+        }
+
+        foreach (config('access.actions', []) as $module => $permissions) {
+            foreach ((array) $permissions as $permission) {
+                $rows[$permission] ??= ['name' => $permission, 'module' => $module, 'page' => null, 'tab' => null, 'kind' => 'action'];
+            }
+        }
+
+        return array_values($rows);
+    }
+
+    /** Permisos que tiene un rol. */
+    public function permissionsOf(string $roleName): array
+    {
+        return $this->repo->permissionNamesOf($roleName);
+    }
 }

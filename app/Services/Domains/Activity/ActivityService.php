@@ -15,6 +15,10 @@ class ActivityService
     private const EVENTS = [
         'business.registered' => ['business_created', 'Novo negócio cadastrado'],
         'business.activated'  => ['business_activated', 'Negócio aprovado'],
+        'payment.received'    => ['payment_received', 'Pagamento recebido'],
+        'promotion.activated' => ['promotion_activated', 'Campanha ativada'],
+        'promotion.paused'    => ['promotion_paused', 'Campanha pausada'],
+        'promotion.resumed'   => ['promotion_resumed', 'Campanha reativada'],
         'member.assigned'     => ['member_added', 'Membro adicionado à equipe'],
         'member.removed'      => ['member_removed', 'Membro removido da equipe'],
         'issue.in_progress'   => ['issue_started', 'Reclamação em andamento'],

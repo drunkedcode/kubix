@@ -4,6 +4,7 @@ namespace App\Services\Domains\Payment;
 
 use App\Models\Business;
 use App\Models\Payment;
+use App\Services\Domains\Activity\ActivityService;
 use App\Services\Domains\Agency\AgencyService;
 use App\Services\Domains\Business\BusinessService;
 use App\Services\Domains\Territory\TerritoryService;
@@ -34,6 +35,7 @@ class PaymentService
         protected BusinessService $businesses,
         protected AgencyService $agency,
         protected TerritoryService $territories,
+        protected ActivityService $activity,
     ) {}
 
     /** Lo que la app puede ver de un pago. */
@@ -98,6 +100,12 @@ class PaymentService
                 'paid_at'      => now(),
                 'confirmed_by' => $confirmedBy,
             ]);
+
+            if ($territoryId = $this->businesses->territoryIdOf($business)) {
+                $this->activity->record($territoryId, $confirmedBy, $business, 'payment.received', [
+                    'name' => (self::KIND_LABELS[$kind] ?? $kind) . ' · ' . (self::METHOD_LABELS[$method] ?? $method),
+                ]);
+            }
 
             if ($kind === 'onboarding') {
                 $this->businesses->activate($business, $confirmedBy);

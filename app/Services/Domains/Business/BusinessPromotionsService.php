@@ -3,7 +3,9 @@
 namespace App\Services\Domains\Business;
 
 use App\Models\Business;
+use App\Models\Promotion;
 use App\Models\User;
+use App\Services\Domains\Activity\ActivityService;
 use App\Services\Domains\Payment\PaymentService;
 use App\Services\Domains\Promotion\PromotionService;
 use Illuminate\Support\Facades\DB;
@@ -20,6 +22,7 @@ class BusinessPromotionsService
         protected BusinessService $businesses,
         protected PromotionService $promotions,
         protected PaymentService $payments,
+        protected ActivityService $activity,
     ) {}
 
     /** Las campañas del negocio con sus vistas y clics. */
@@ -46,9 +49,10 @@ class BusinessPromotionsService
 
         $this->promotions->assertDraft($promotion);
 
-        return DB::transaction(function () use ($business, $promotion, $method) {
+        return DB::transaction(function () use ($owner, $business, $promotion, $method) {
             $payment   = $this->payments->pay($business, 'promotion', $method);
             $promotion = $this->promotions->activate($promotion, $payment->id);
+            $this->note($owner, $business, 'promotion.activated', $promotion);
 
             return [
                 'payment'   => $this->payments->toApi($payment),
@@ -63,7 +67,20 @@ class BusinessPromotionsService
         $business  = $this->activeOwned($owner, $businessId);
         $promotion = $this->promotions->findOf($business->id, $promotionId);
 
-        return $this->promotions->toApi($this->promotions->changeStatus($promotion, $status));
+        $updated = $this->promotions->changeStatus($promotion, $status);
+        $this->note($owner, $business, $status === 'paused' ? 'promotion.paused' : 'promotion.resumed', $updated);
+
+        return $this->promotions->toApi($updated);
+    }
+
+    /** Anota en el historial del negocio lo que el dueño hizo con una campaña. */
+    private function note(User $owner, Business $business, string $event, Promotion $promotion): void
+    {
+        $territoryId = $this->businesses->territoryIdOf($business);
+
+        if ($territoryId) {
+            $this->activity->record($territoryId, $owner->id, $business, $event, ['name' => $promotion->title]);
+        }
     }
 
     private function owned(User $owner, int $businessId): Business

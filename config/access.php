@@ -100,6 +100,7 @@ return [
                     'finance' => 'view-business-finance',
                     'traffic' => 'view-business-traffic',
                     'ads'     => 'view-business-ads',
+                    'history' => 'view-business-profile',
                 ],
             ],
         ],

@@ -1,14 +1,15 @@
 import { Head, router } from "@inertiajs/react";
 import AdminLayout from "@/Layouts/AdminLayout";
-import { LayoutDashboard, DollarSign, Megaphone, MousePointerClick } from "lucide-react";
+import { LayoutDashboard, DollarSign, History, Megaphone, MousePointerClick } from "lucide-react";
 import Tabs, { type TabItem } from "@/Shared/ui/Tabs";
+import RecentActivityPanel, { type ActivityItem } from "@/Shared/components/activity/RecentActivityPanel";
 import BusinessHero, { type BusinessKpi, type BusinessProfile } from "./Partials/BusinessHero";
 import OverviewTab, { type OverviewData } from "./Tabs/OverviewTab";
 import FinanceTab, { type FinanceData } from "./Tabs/FinanceTab";
 import AdsTab, { type AdsData } from "./Tabs/AdsTab";
 import TrafficTab, { type TrafficData } from "./Tabs/TrafficTab";
 
-type TabKey = "profile" | "finance" | "traffic" | "ads";
+type TabKey = "profile" | "finance" | "traffic" | "ads" | "history";
 
 interface ShowProps {
   business: BusinessProfile;
@@ -21,6 +22,7 @@ interface ShowProps {
   adsData?: AdsData;
   trafficData?: TrafficData;
   financeData?: FinanceData;
+  history?: ActivityItem[];
 }
 
 const ALL_TABS: TabItem<TabKey>[] = [
@@ -28,6 +30,7 @@ const ALL_TABS: TabItem<TabKey>[] = [
   { key: "finance", label: "Financeiro", icon: DollarSign },
   { key: "traffic", label: "Tráfego", icon: Megaphone },
   { key: "ads", label: "Campanhas", icon: MousePointerClick },
+  { key: "history", label: "Histórico", icon: History },
 ];
 
 const CONTENT: Record<TabKey, (p: ShowProps) => React.ReactNode> = {
@@ -35,6 +38,13 @@ const CONTENT: Record<TabKey, (p: ShowProps) => React.ReactNode> = {
   finance: (p) => <FinanceTab data={p.financeData} />,
   traffic: (p) => <TrafficTab data={p.trafficData} />,
   ads: (p) => <AdsTab data={p.adsData} />,
+  history: (p) => (
+    <RecentActivityPanel
+      items={p.history ?? []}
+      title="Histórico"
+      empty="Ainda não há movimentos no histórico deste negócio."
+    />
+  ),
 };
 
 export default function Show(props: ShowProps) {

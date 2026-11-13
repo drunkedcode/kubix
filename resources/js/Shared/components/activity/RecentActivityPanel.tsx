@@ -1,4 +1,4 @@
-import { CheckCheck, CheckCircle2, MessageSquareWarning, Store, UserMinus, UserPlus, Zap } from 'lucide-react';
+import { CheckCheck, CheckCircle2, Megaphone, MessageSquareWarning, Pause, Play, Store, UserMinus, UserPlus, Wallet, Zap } from 'lucide-react';
 import Card from '@/Shared/components/card/Card';
 import CardTitle from '@/Shared/components/card/CardTitle';
 
@@ -9,7 +9,11 @@ export interface ActivityItem {
         | 'member_added'
         | 'member_removed'
         | 'issue_started'
-        | 'issue_resolved';
+        | 'issue_resolved'
+        | 'payment_received'
+        | 'promotion_activated'
+        | 'promotion_paused'
+        | 'promotion_resumed';
     title: string;
     subtitle: string;
     time: string;
@@ -30,6 +34,10 @@ const KIND = {
     member_removed: { icon: UserMinus, tone: 'bg-rose-500/10 text-rose-600 dark:text-rose-300' },
     issue_started: { icon: MessageSquareWarning, tone: 'bg-amber-500/15 text-amber-600 dark:text-amber-300' },
     issue_resolved: { icon: CheckCheck, tone: 'bg-green-500/10 text-green-600 dark:text-green-300' },
+    payment_received: { icon: Wallet, tone: 'bg-green-500/10 text-green-600 dark:text-green-300' },
+    promotion_activated: { icon: Megaphone, tone: 'bg-blue-500/10 text-blue-600 dark:text-blue-300' },
+    promotion_paused: { icon: Pause, tone: 'bg-amber-500/15 text-amber-600 dark:text-amber-300' },
+    promotion_resumed: { icon: Play, tone: 'bg-purple-500/10 text-purple-600 dark:text-purple-300' },
 } as const;
 
 export default function RecentActivityPanel({

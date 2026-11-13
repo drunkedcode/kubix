@@ -4,6 +4,7 @@ namespace App\Services\Domains\Business;
 
 use App\Enums\BusinessSegment;
 use App\Models\Business;
+use App\Services\Domains\Activity\ActivityService;
 use App\Services\Domains\Analytics\AnalyticsService;
 use App\Services\Domains\Payment\PaymentService;
 use App\Services\Domains\Promotion\PromotionService;
@@ -21,6 +22,7 @@ class BusinessShowService
         protected ReviewService $reviews,
         protected PromotionService $promotions,
         protected PaymentService $payments,
+        protected ActivityService $activity,
     ) {}
 
     /** Base data of the page, present on every tab. */
@@ -112,5 +114,13 @@ class BusinessShowService
     public function ads(Business $business): array
     {
         return ['campaigns' => $this->promotions->campaignsFor($business->id)];
+    }
+
+    /** Pestaña history: lo que le pasó al negocio (alta, aprobación, pagos y campañas). */
+    public function history(Business $business): array
+    {
+        $territoryId = $this->businesses->territoryIdOf($business);
+
+        return ['history' => $territoryId ? $this->activity->about($territoryId, $business) : []];
     }
 }

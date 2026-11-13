@@ -81,6 +81,7 @@ class BusinessController extends Controller
             'finance' => ['financeData' => $this->showService->finance($negocio)],
             'traffic' => ['trafficData' => $this->showService->traffic($negocio)],
             'ads'     => ['adsData' => $this->showService->ads($negocio)],
+            'history' => ['history' => $this->showService->history($negocio)['history']],
         };
 
         return Inertia::render('Business/Show', [
